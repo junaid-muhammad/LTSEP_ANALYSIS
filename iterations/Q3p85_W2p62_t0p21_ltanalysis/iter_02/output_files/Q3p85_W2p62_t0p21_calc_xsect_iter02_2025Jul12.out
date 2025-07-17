@@ -1,0 +1,208 @@
+ list:     1   3.85000   0.29200   0.00000   0.16000   0.50000    0    1
+ tmn, tmx:    0.16000   0.50000  for kset=    1
+   6395.66016       3.84999990      0.291999996    
+ xsect: Eb= 6.39566   at Q2= 3.8500  eps=0.2920  pol=pi
+ xsect: r_fn=averages/Q3p85_W2p62_t0p21_aver_pi_385_292.dat                                  
+ xsect: kin_fn=averages/Q3p85_W2p62_t0p21_avek_385.dat                                         
+ xsect: xunsep_fn =xsects/Q3p85_W2p62_t0p21_x_unsep_pi_385_292.dat
+xsect:     2.6737    0.0004    3.6168    0.0016    5.6839    1.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.287 t=0.198 sigL=   0.62 sigT=  0.25 sigTT=-0.00 sigLT= 0.13 x_mod=0.2199E-08
+xsect:     2.6360    0.0005    3.7711    0.0020    9.0061    2.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.291 t=0.253 sigL=   0.34 sigT=  0.37 sigTT=-0.01 sigLT= 0.12 x_mod=0.2464E-08
+xsect:     2.6202    0.0006    3.8347    0.0023   10.9512    3.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.293 t=0.289 sigL=   0.23 sigT=  0.42 sigTT=-0.01 sigLT= 0.10 x_mod=0.2505E-08
+xsect:     2.6094    0.0006    3.8778    0.0025   13.1041    4.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.295 t=0.331 sigL=   0.11 sigT=  0.44 sigTT=-0.01 sigLT= 0.07 x_mod=0.2415E-08
+xsect:     2.6003    0.0006    3.9189    0.0024   17.4241    5.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.295 t=0.427 sigL=   0.01 sigT=  0.47 sigTT=-0.01 sigLT= 0.02 x_mod=0.2223E-08
+  
+ list:     1   3.85000   0.29200   0.00000   0.16000   0.50000    0    1
+ list:     1   3.85000   0.77900   0.00000   0.16000   0.50000    0    2
+ tmn, tmx:    0.16000   0.50000  for kset=    2
+   6395.66016       3.84999990      0.291999996    
+   10557.3018       3.84999990      0.778999984    
+ xsect: Eb=10.55730   at Q2= 3.8500  eps=0.7790  pol=pi
+ xsect: r_fn=averages/Q3p85_W2p62_t0p21_aver_pi_385_779.dat                                  
+ xsect: kin_fn=averages/Q3p85_W2p62_t0p21_avek_385.dat                                         
+ xsect: xunsep_fn =xsects/Q3p85_W2p62_t0p21_x_unsep_pi_385_779.dat
+xsect:     2.6737    0.0004    3.6168    0.0016    5.6839    1.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.778 t=0.198 sigL=   0.62 sigT=  0.25 sigTT=-0.00 sigLT= 0.13 x_mod=0.3850E-08
+xsect:     2.6360    0.0005    3.7711    0.0020    9.0061    2.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.779 t=0.253 sigL=   0.34 sigT=  0.37 sigTT=-0.01 sigLT= 0.12 x_mod=0.3571E-08
+xsect:     2.6202    0.0006    3.8347    0.0023   10.9512    3.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.780 t=0.289 sigL=   0.23 sigT=  0.42 sigTT=-0.01 sigLT= 0.10 x_mod=0.3319E-08
+xsect:     2.6094    0.0006    3.8778    0.0025   13.1041    4.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.780 t=0.331 sigL=   0.11 sigT=  0.44 sigTT=-0.01 sigLT= 0.07 x_mod=0.2888E-08
+xsect:     2.6003    0.0006    3.9189    0.0024   17.4241    5.0000
+ xmodel: p_fn=fit_params/iter02/par.pl_385                                                    
+ xmodel:     12.7921     0.8331   1
+ xmodel:    -42.9406     3.1560   2
+ xmodel:      0.0000     0.0000   3
+ xmodel:      0.0000     0.0000   4
+ xmodel:      1.2383   515.4000   5
+ xmodel:   -101.9109  2153.0000   6
+ xmodel:    -45.0639  2718.0000   7
+ xmodel:     -0.4196    36.7300   8
+ xmodel:      0.0422     9.2320   9
+ xmodel:      4.0109     2.0090  10
+ xmodel:    -25.3549     4.9960  11
+ xmodel:     13.7692    32.2300  12
+ xmodel:   -214.1161   498.4000  13
+ xmodel:     -1.0746     0.7606  14
+ xmodel:      0.0000     0.0000  15
+ xmodel:      0.0000     0.0000  16
+xmodel: eps=0.780 t=0.427 sigL=   0.01 sigT=  0.47 sigTT=-0.01 sigLT= 0.02 x_mod=0.2283E-08
+  
