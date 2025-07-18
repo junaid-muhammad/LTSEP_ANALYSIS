@@ -73,9 +73,9 @@ REPLAYPATH=lt.REPLAYPATH
 UTILPATH=lt.UTILPATH
 ANATYPE=lt.ANATYPE
 OUTPATH=lt.OUTPATH
-XSECT_PATH = "%s/scripts/ltsep_analysis/src/xsects" % (UTILPATH)
-XSECT_OUTPATH = "%s/scripts/ltsep_analysis/src/output" % (UTILPATH)
-XSECT_PARAMPATH = "%s/scripts/ltsep_analysis/src/fit_params" % (UTILPATH)
+XSECT_PATH = "%s/LTSEP_ANALYSIS/src/xsects" % (REPLAYPATH)
+XSECT_OUTPATH = "%s/LTSEP_ANALYSIS/src/output" % (REPLAYPATH)
+XSECT_PARAMPATH = "%s/LTSEP_ANALYSIS/src/fit_params" % (REPLAYPATH)
 
 #################################################################################################################################################
 
@@ -141,7 +141,7 @@ t_central_values = np.union1d(
 t_central_values = np.sort(t_central_values)
 
 # Output file path
-UnSep_Xsection_pdf = f"%s/%s_ProdCoin_Pion_Analysis_UnSep_xsection_iter%s_Distributions.pdf" % (XSECT_OUTPATH, PHY_SETTING, ITERATION)
+UnSep_Xsection_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_UnSep_xsection_iter%s_Distributions.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
 # 2x3 grid, first subplot is for annotation/text
 fig_1, axs_1 = plt.subplots(2, 3, figsize=(20, 10))
@@ -209,7 +209,7 @@ def rosenbluth_fit(phi_eps, sigma_T, sigma_L, sigma_LT, sigma_TT):
     return (1 / (2 * np.pi)) * (A + B * np.cos(phi_rad) + C * np.cos(2 * phi_rad))
     
 # Output file path
-Sep_Xsection_pdf = f"%s/%s_ProdCoin_Pion_Analysis_Sep_xsection_iter%s_Distributions.pdf" % (XSECT_OUTPATH, PHY_SETTING, ITERATION)
+Sep_Xsection_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_Sep_xsection_iter%s_Distributions.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
 # --- Prepare lists to collect fit results ---
 sigma_L_list, sigma_L_err_list = [], []
@@ -426,24 +426,22 @@ print ("Fit parameters loaded from file:")
 print(f"p1={p1}, p2={p2}, p3={p3}, p4={p4}, p5={p5}, p6={p6}, p7={p7}, p8={p8}, p9={p9}, p10={p10}, p11={p11}, p12={p12}, p13={p13}, p14={p14}, p15={p15}, p16={p16}")
 
 # sigma_L fit
-# Fix p6 and p8, only fit p5, p7, p9
-fixed_p6 = p6
-fixed_p8 = p8
-p0_L = [p5, p7, p9]  # Only fit these
+# Fit all parameters p5, p6, p7, p8, p9
+p0_L = [p5, p6, p7, p8, p9]  # Fit all parameters
 try:
-    def sigma_L_fitfunc(x_tuple, p5, p7, p9):
+    def sigma_L_fitfunc(x_tuple, p5, p6, p7, p8, p9):
         t, Q2 = x_tuple
-        return sigma_L_func(t, Q2, p5, fixed_p6, p7, fixed_p8, p9)
+        return sigma_L_func(t, Q2, p5, p6, p7, p8, p9)
     x_input_L = np.vstack((abs_t_cent_var, Q2_var))
     popt_L, pcov_L = curve_fit(
         sigma_L_fitfunc, x_input_L, sigma_L, sigma=sigma_L_err, p0=p0_L,
-        absolute_sigma=True, maxfev=50000
+        absolute_sigma=True, maxfev=100000
     )
-    print("New sigma_L fit params (p5, p7, p9):", popt_L)
+    print("New sigma_L fit params (p5, p6, p7, p8, p9):", popt_L)
 except Exception as e:
     print("sigma_L fit failed:", e)
     popt_L = p0_L
-    pcov_L = np.zeros((3,3))
+    pcov_L = np.zeros((5,5))
 
 # sigma_T fit
 p0_T = [p1, p2]
@@ -452,7 +450,7 @@ try:
         return sigma_T_func(Q2, p1, p2)
     popt_T, pcov_T = curve_fit(
         sigma_T_fitfunc, Q2_var, sigma_T, sigma=sigma_T_err, p0=p0_T,
-        absolute_sigma=True, maxfev=50000
+        absolute_sigma=True, maxfev=100000
     )
     print("New sigma_T fit params: p1, p2 =", popt_T)
 except Exception as e:
@@ -469,7 +467,7 @@ try:
     x_input_LT = np.vstack((abs_t_cent_var, Q2_var, theta_cm_var))
     popt_LT, pcov_LT = curve_fit(
         sigma_LT_fitfunc, x_input_LT, sigma_LT, sigma=sigma_LT_err, p0=p0_LT,
-        absolute_sigma=True, maxfev=50000
+        absolute_sigma=True, maxfev=100000
     )
     print("New sigma_LT fit params: p10, p11, p12, p13 =", popt_LT)
 except Exception as e:
@@ -486,7 +484,7 @@ try:
     x_input_TT = np.vstack((abs_t_cent_var, Q2_var, theta_cm_var))
     popt_TT, pcov_TT = curve_fit(
         sigma_TT_fitfunc, x_input_TT, sigma_TT, sigma=sigma_TT_err, p0=p0_TT,
-        absolute_sigma=True, maxfev=50000
+        absolute_sigma=True, maxfev=100000
     )
     print("New sigma_TT fit param: p14 =", popt_TT)
 except Exception as e:
@@ -504,7 +502,7 @@ axs_3[0].set_title(r'$\sigma_L$ vs $t$', fontsize=16, fontweight='bold')
 axs_3[0].set_xlabel(r'$t$ (GeV$^2$)', fontsize=14)
 axs_3[0].set_ylabel(r'$\sigma_L$ ($\mu$b/GeV$^2$)', fontsize=14)
 # Functional fit for sigma_L
-sigma_L_fit = sigma_L_func(abs_t_cent_var, Q2_var, popt_L[0], fixed_p6, popt_L[1], fixed_p8, popt_L[2])
+sigma_L_fit = sigma_L_func(abs_t_cent_var, Q2_var, *popt_L)
 axs_3[0].plot(abs_t_cent_var, sigma_L_fit, 'r--', label='Fit')
 axs_3[0].legend()
 
@@ -554,7 +552,7 @@ param_names = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11
 param_values = [
     popt_T[0], popt_T[1],
     p3, p4,  # Use loaded values for C, D
-    popt_L[0], popt_L[1], popt_L[2], popt_L[3], popt_L[4],
+    popt_L[0], popt_L[1], popt_L[2], popt_L[3], popt_L[4],  # p5, p6, p7, p8, p9
     popt_LT[0], popt_LT[1], popt_LT[2], popt_LT[3],
     popt_TT[0],
     p15, p16   # Use loaded values for O, P
@@ -562,7 +560,7 @@ param_values = [
 param_errors = [
     np.sqrt(np.diag(pcov_T))[0], np.sqrt(np.diag(pcov_T))[1],
     0, 0,  # C, D not fitted
-    np.sqrt(np.diag(pcov_L))[0], np.sqrt(np.diag(pcov_L))[1], np.sqrt(np.diag(pcov_L))[2], np.sqrt(np.diag(pcov_L))[3], np.sqrt(np.diag(pcov_L))[4],
+    np.sqrt(np.diag(pcov_L))[0], np.sqrt(np.diag(pcov_L))[1], np.sqrt(np.diag(pcov_L))[2], np.sqrt(np.diag(pcov_L))[3], np.sqrt(np.diag(pcov_L))[4],  # p5, p6, p7, p8, p9
     np.sqrt(np.diag(pcov_LT))[0], np.sqrt(np.diag(pcov_LT))[1], np.sqrt(np.diag(pcov_LT))[2], np.sqrt(np.diag(pcov_LT))[3],
     np.sqrt(np.diag(pcov_TT))[0],
     0, 0   # O, P not fitted

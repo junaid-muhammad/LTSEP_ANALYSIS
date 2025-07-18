@@ -115,21 +115,18 @@ REPLAYPATH=lt.REPLAYPATH
 UTILPATH=lt.UTILPATH
 ANATYPE=lt.ANATYPE
 OUTPATH=lt.OUTPATH
-DATA_CSV_PATH = "%s/LTSep_CSVs/physics_yields_csv" % (UTILPATH)
+VOLATILEPATH=lt.VOLATILEPATH
 
-# Define the path for the SIMC CSVs
-if Iteration == "Prod":
-    physet_dir_name = "_".join(PHY_SETTING.split("_")[:3]) + "_std"
-else:
-    physet_dir_name = "_".join(PHY_SETTING.split("_")[:3]) + "_iter%s" % (Iteration)
-
-SIMC_CSV_PATH = "%s/LTSep_CSVs/simc_yields_csv/%s" % (UTILPATH, physet_dir_name)
+# Extract the first three words from PHY_SETTING for the CSV file name
+setting_name = "_".join(PHY_SETTING.split("_")[:3])
+physet_dir_name = "%s_iter%s" % (setting_name, Iteration)
+DATA_CSV_PATH = "%s/LTSEP_ANALYSIS/LTSep_CSVs/physics_yields_csv/%s_std" % (REPLAYPATH, setting_name)
+SIMC_CSV_PATH = "%s/LTSEP_ANALYSIS/LTSep_CSVs/simc_yields_csv/%s" % (REPLAYPATH, physet_dir_name)
 
 #################################################################################################################################################
 
 # Output PDF File Name
 print("Running as %s on %s, hallc_replay_lt path assumed as %s" % (USER, HOST, REPLAYPATH))
-#Pion_Analysis_Distributions = "%s/%s_%s_ProdCoin_Pion_Analysis_avgkin_Distributions.pdf" % (OUTPATH, PHY_SETTING, MaxEvent)
 
 # Input file location and variables taking
 data_yield_csv = "%s/%s_%s.csv" % (DATA_CSV_PATH, PHY_SETTING, DATA_YIELD_CSV)
@@ -144,7 +141,7 @@ print ('\nPhysics Setting = ',PHY_SETTING, '\n')
 print("="*40)
 
 # Define the output path
-combined_weighted_loweps_yields = "%s/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_loweps_avg_yields.csv" % (UTILPATH, physet_dir_name, PHY_SETTING)
+combined_weighted_loweps_yields = "%s/LTSEP_ANALYSIS/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_loweps_avg_yields.csv" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 
 # Load the CSV file
 data_yield_df = pd.read_csv(data_yield_csv)
@@ -247,7 +244,7 @@ print(f"Average weighted loweps yields saved to the path: {combined_weighted_low
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Define the output path
-combined_weighted_higheps_yields = "%s/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_higheps_avg_yields.csv" % (UTILPATH, physet_dir_name, PHY_SETTING)
+combined_weighted_higheps_yields = "%s/LTSEP_ANALYSIS/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_higheps_avg_yields.csv" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 
 # Filter the DataFrame for specific Physics_Setting values
 filtered_data_yield_higheps_right_df = data_yield_df[data_yield_df["Physics_Setting"] == f"{PHY_SETTING}_higheps_right"]
@@ -349,7 +346,7 @@ print("-"*40)
 
 # Section for average kinematic calculation
 # Define the output path
-combined_weighted_kinematics = "%s/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_avg_kinematics.csv" % (UTILPATH, physet_dir_name, PHY_SETTING)
+combined_weighted_kinematics = "%s/LTSEP_ANALYSIS/LTSep_CSVs/avg_kinematics_csv/%s/%s_pion_physics_avg_kinematics.csv" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 
 # Load the CSV file
 data_avgkin_df = pd.read_csv(data_avgkin_csv)
@@ -553,7 +550,7 @@ for t_idx in range(min(5, len(higheps_tbins))):
 # Adjust layout and save
 plt.tight_layout()
 
-ratio_pdf = f"{OUTPATH}/{PHY_SETTING}_{MaxEvent}_ProdCoin_Pion_Analysis_avgkin_avgyield_Distributions.pdf"
+ratio_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_%s_ProdCoin_Pion_Analysis_avgkin_avgyield_Distributions_iter%s.pdf" % (REPLAYPATH, PHY_SETTING, MaxEvent, Iteration)
 # Save both plots into one PDF
 with PdfPages(ratio_pdf) as pdf:
     # Save loweps figure
@@ -574,7 +571,7 @@ higheps_val = int(higheps.replace('.', '')[1:])
 #print(f"Q value: {q_name_val}, Loweps value: {loweps_val}, Higheps value: {higheps_val}")
 
 # Input file for loweps data
-avgkin_dat = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_avek_%s.dat" % (UTILPATH, physet_dir_name, PHY_SETTING, q_name_val)
+avgkin_dat = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_avek_%s.dat" % (REPLAYPATH, physet_dir_name, PHY_SETTING, q_name_val)
 with open(avgkin_dat, "w") as f:
     for idx, row in final_avgkin_df.iterrows():
         # Build the line as: Q2   (3 spaces) Q2err   (3 spaces) W   (3) Werr   (3) theta   (3) tbin_number
@@ -598,7 +595,7 @@ print("-"*40)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # input file with ratios for loweps
-avgratio_loweps_dat = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_aver_pi_%s_%s.dat" % (UTILPATH, physet_dir_name, PHY_SETTING, q_name_val, loweps_val)
+avgratio_loweps_dat = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_aver_pi_%s_%s.dat" % (REPLAYPATH, physet_dir_name, PHY_SETTING, q_name_val, loweps_val)
 # Read the CSV file into a DataFrame
 with open(avgratio_loweps_dat, "w") as f:
     for idx, row in final_ratio_loweps_df.iterrows():
@@ -616,7 +613,7 @@ print(f"Saved input avgkin_loweps_dat file to: {avgratio_loweps_dat}")
 
 
 # input file with ratios for higheps
-avgratio_higheps_dat = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_aver_pi_%s_%s.dat" % (UTILPATH, physet_dir_name, PHY_SETTING, q_name_val, higheps_val)
+avgratio_higheps_dat = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_aver_pi_%s_%s.dat" % (REPLAYPATH, physet_dir_name, PHY_SETTING, q_name_val, higheps_val)
 # Read the CSV file into a DataFrame
 with open(avgratio_higheps_dat, "w") as f:
     for idx, row in final_ratio_higheps_df.iterrows():
@@ -637,7 +634,7 @@ print("-"*40)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Create input file for tbin interval
-tbin_interval_dat = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_t_bin_interval" % (UTILPATH, physet_dir_name, PHY_SETTING)
+tbin_interval_dat = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_t_bin_interval" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 # Simple extraction and conversion of Q value
 q_str = PHY_SETTING.split('_')[0]  # 'Q3p85'
 q_val = float(q_str[1:].replace('p', '.'))  # Remove 'Q', replace 'p' with '', then convert to int
@@ -662,7 +659,7 @@ print("-"*40)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Create input file for Ebeam file
-Eb_pion_dat = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_Eb_pion.dat" % (UTILPATH, physet_dir_name, PHY_SETTING)
+Eb_pion_dat = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_Eb_pion.dat" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 # Extract beam energy values
 loweps_beam_energy = final_avgkin_df.iloc[0]["Beam_Energy_loweps"] * 1000
 higheps_beam_energy = final_avgkin_df.iloc[0]["Beam_Energy_higheps"] * 1000
@@ -674,7 +671,7 @@ print(f"Saved input Eb_pion22_dat file to: {Eb_pion_dat}")
 
 
 # Creating list of settings for LTSep analysis
-list_settings_pion = "%s/LTSep_CSVs/ltsep_input_csv/%s/%s_list_settings_pion" % (UTILPATH, physet_dir_name, PHY_SETTING)
+list_settings_pion = "%s/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/%s/%s_list_settings_pion" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 with open(list_settings_pion, "w") as f:
     tmn = final_avgkin_df["t_min"].min()
     tmx = final_avgkin_df["t_max"].max()

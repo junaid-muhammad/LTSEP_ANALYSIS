@@ -73,8 +73,8 @@ REPLAYPATH=lt.REPLAYPATH
 UTILPATH=lt.UTILPATH
 ANATYPE=lt.ANATYPE
 OUTPATH=lt.OUTPATH
-XSECT_PATH = "%s/scripts/ltsep_analysis/src/xsects" % (UTILPATH)
-XSECT_OUTPATH = "%s/scripts/ltsep_analysis/src/output" % (UTILPATH)
+XSECT_PATH = "%s/LTSEP_ANALYSIS/src/xsects" % (REPLAYPATH)
+XSECT_OUTPATH = "%s/LTSEP_ANALYSIS/src/output" % (REPLAYPATH)
 
 #################################################################################################################################################
 
@@ -140,7 +140,7 @@ t_central_values = np.union1d(
 t_central_values = np.sort(t_central_values)
 
 # Output file path
-UnSep_Xsection_pdf = f"%s/%s_ProdCoin_Pion_Analysis_UnSep_xsection_iter%s_Distributions.pdf" % (XSECT_OUTPATH, PHY_SETTING, ITERATION)
+UnSep_Xsection_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_UnSep_xsection_iter%s_Distributions.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
 # 2x3 grid, first subplot is for annotation/text
 fig_1, axs_1 = plt.subplots(2, 3, figsize=(20, 10))
@@ -208,7 +208,7 @@ def rosenbluth_fit(phi_eps, sigma_T, sigma_L, sigma_LT, sigma_TT):
     return (1 / (2 * np.pi)) * (A + B * np.cos(phi_rad) + C * np.cos(2 * phi_rad))
     
 # Output file path
-Sep_Xsection_pdf = f"%s/%s_ProdCoin_Pion_Analysis_Sep_xsection_iter%s_Distributions.pdf" % (XSECT_OUTPATH, PHY_SETTING, ITERATION)
+Sep_Xsection_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_Sep_xsection_iter%s_Distributions.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
 # --- Prepare lists to collect fit results ---
 sigma_L_list, sigma_L_err_list = [], []

@@ -50,14 +50,14 @@ PHY_SETTING = sys.argv[1]
 ITERATION = sys.argv[2]
 SIMC_Suffix = sys.argv[3]
 
-# Ensure ITERATION is greater than 01
-if int(ITERATION) <= 1:
-    print("!!!!! ERROR !!!!!\n ITERATION must be greater than 01\n!!!!! ERROR !!!!!")
+# Ensure ITERATION is greater than 00
+if int(ITERATION) <= 0:
+    print("!!!!! ERROR !!!!!\n ITERATION must be greater than 00\n!!!!! ERROR !!!!!")
     sys.exit(1)
 
 # Creating argument for previous iteration
-#ITERATION_PREV = f"{int(ITERATION)-1:02d}"
-ITERATION_PREV = f"{ITERATION}"
+ITERATION_PREV = f"{int(ITERATION)-1:02d}"
+#ITERATION_PREV = f"{ITERATION}"
 
 ################################################################################################################################################
 
@@ -77,9 +77,10 @@ REPLAYPATH=lt.REPLAYPATH
 UTILPATH=lt.UTILPATH
 ANATYPE=lt.ANATYPE
 OUTPATH=lt.OUTPATH
-XSECT_PARAMPATH = "%s/scripts/ltsep_analysis/src/fit_params" % (UTILPATH)
-XSECT_OUTPATH = "%s/scripts/ltsep_analysis/src/output" % (UTILPATH)
-SIMCPATH = "/volatile/hallc/c-pionlt/%s/OUTPUT/Analysis/SIMC/" % (USER)
+VOLTILEPATH=lt.VOLATILEPATH
+XSECT_PARAMPATH = "%s/LTSEP_ANALYSIS/src/fit_params" % (REPLAYPATH)
+XSECT_OUTPATH = "%s/LTSEP_ANALYSIS/src/output" % (REPLAYPATH)
+SIMCPATH = "%s/OUTPUT/Analysis/SIMC" % (VOLTILEPATH)
 
 ##################################################################################################################################################
 
@@ -109,7 +110,7 @@ for branch in branches:
     TBRANCH_SIMC.SetBranchAddress(bname, branch_arrays[grab_bname])
 
 # Create output file for new weights
-outFile_SIMC = ROOT.TFile.Open("%s/%s.root" % (SIMCPATH, SIMC_Suffix.replace(".root","")), "RECREATE")
+outFile_SIMC = ROOT.TFile.Open("%s/%s_iter%s/%s.root" % (SIMCPATH, PHY_SETTING, ITERATION, SIMC_Suffix.replace(".root","")), "RECREATE")
 new_TBRANCH_SIMC = ROOT.TTree("h10", "Iteration_%s" % (ITERATION))
 # Create all output branches same as input file
 output_arrays = {}
@@ -140,7 +141,7 @@ Q2str = PHY_SETTING.split('_')[0]
 if Q2str.startswith('Q'):
     Q2par = Q2str[1:].replace('p', '') 
 
-if ITERATION_PREV >= "01":
+if ITERATION_PREV >= "00":
     # Read fit parameters from file and assign to variables (first column only)
     param_file = "%s/iter%s/par.pl_%s" % (XSECT_PARAMPATH, ITERATION_PREV, Q2par)
     params = []
@@ -219,7 +220,7 @@ else:
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if ITERATION >= "01":
+if ITERATION >= "00":
     # Read fit parameters from file and assign to variables (first column only)
     param_file = "%s/iter%s/par.pl_%s" % (XSECT_PARAMPATH, ITERATION, Q2par)
     params = []

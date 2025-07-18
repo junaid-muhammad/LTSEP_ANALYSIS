@@ -75,27 +75,22 @@ REPLAYPATH=lt.REPLAYPATH
 UTILPATH=lt.UTILPATH
 ANATYPE=lt.ANATYPE
 OUTPATH=lt.OUTPATH
+VOLATILEPATH=lt.VOLATILEPATH
 RUNLISTPATH = "/u/group/c-pionlt/USERS/%s/hallc_replay_lt/UTIL_BATCH/InputRunLists/PionLT_2021_2022" % (USER)
 EFF_CSV     = "/u/group/c-pionlt/USERS/%s/hallc_replay_lt/UTIL_PION/efficiencies" % (USER)
-MMCUT_CSV   = "/u/group/c-pionlt/USERS/%s/hallc_replay_lt/UTIL_PION/LTSep_CSVs/mm_offset_cut_csv" % (USER)
-DCUT_CSV    = "/u/group/c-pionlt/USERS/%s/hallc_replay_lt/UTIL_PION/LTSep_CSVs/diamond_cut_csv" % (USER)
 
-# Define paths SIMC
-if Iteration == "Prod":
-    physet_dir_name = "_".join(PHY_SETTING.split("_")[:3]) + "_std"
-else:
-    physet_dir_name = "_".join(PHY_SETTING.split("_")[:3]) + "_iter%s" % (Iteration)
-
+# Extract the first three words from PHY_SETTING for the CSV file name
+setting_name = "_".join(PHY_SETTING.split("_")[:3])
+physet_dir_name = "%s_iter%s" % (setting_name, Iteration)
 SIMCPATH = "/volatile/hallc/c-pionlt/%s/OUTPUT/Analysis/SIMC/%s/" % (USER, physet_dir_name)
+MMCUT_CSV   = "%s/LTSEP_ANALYSIS/LTSep_CSVs/mm_offset_cut_csv/%s_std" % (REPLAYPATH, setting_name)
+DCUT_CSV    = "%s/LTSEP_ANALYSIS/LTSep_CSVs/diamond_cut_csv/%s_std" % (REPLAYPATH, setting_name)
 
 #################################################################################################################################################
 
 # Output PDF File Name
 print("Running as %s on %s, hallc_replay_lt path assumed as %s" % (USER, HOST, REPLAYPATH))
-Pion_Analysis_Distributions = "%s/%s_%s_ProdCoin_Pion_Analysis_Ratio_Comparison_Distributions.pdf" % (OUTPATH, PHY_SETTING, MaxEvent)
-
-# Extract the first three words from PHY_SETTING for the CSV file name
-setting_name = "_".join(PHY_SETTING.split("_")[:3])
+Pion_Analysis_Distributions = "%s/LTSEP_ANALYSIS/src/plots/%s_%s_ProdCoin_Pion_Analysis_Ratio_Comparison_Distributions_iter%s.pdf" % (REPLAYPATH, PHY_SETTING, MaxEvent, Iteration)
 
 # Input file location and variables taking
 rootFile_DATA = "%s/%s_%s_%s.root" % (OUTPATH, PHY_SETTING, MaxEvent, DATA_Suffix)
@@ -472,7 +467,7 @@ print("-"*40)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Define the output CSV file name
-eff_cal_output_csv_path = "%s/LTSep_CSVs/datasimc_ratios_csv/%s/%s_Physics_DataSIMC_Norm_Eff_Charge_Calculation.csv" % (UTILPATH, physet_dir_name, PHY_SETTING)
+eff_cal_output_csv_path = "%s/LTSEP_ANALYSIS/LTSep_CSVs/datasimc_ratios_csv/%s/%s_Physics_DataSIMC_Norm_Eff_Charge_Calculation.csv" % (REPLAYPATH, physet_dir_name, PHY_SETTING)
 
 # Prepare the header for the CSV file
 header = [
@@ -2192,7 +2187,7 @@ print("Data/SIMC ratio MMpi = {:.3f} +/- {:.3f}".format(dataSimcRatio_MMpi, data
 print("="*40)
 
 # Define the output CSV file name
-yield_cal_output_csv_path = "%s/LTSep_CSVs/datasimc_ratios_csv/%s/%s_Physics_DataSIMC_Ratio_Calculation.csv" % (UTILPATH, physet_dir_name, setting_name)
+yield_cal_output_csv_path = "%s/LTSEP_ANALYSIS/LTSep_CSVs/datasimc_ratios_csv/%s/%s_Physics_DataSIMC_Ratio_Calculation.csv" % (REPLAYPATH, physet_dir_name, setting_name)
 
 # Prepare the header for the CSV file
 header = [
@@ -2671,7 +2666,7 @@ c6_kin.Print(Pion_Analysis_Distributions + ')')
 #############################################################################################################################################
 
 # Making directories in output file
-outHistFile = ROOT.TFile.Open("%s/%s_%s_Ratio_Comp_Data.root" % (OUTPATH, PHY_SETTING, MaxEvent) , "RECREATE")
+outHistFile = ROOT.TFile.Open("%s/OUTPUT/Analysis/PionLT/ratios/%s/%s_%s_Ratio_Comp_Data.root" % (VOLATILEPATH, physet_dir_name, PHY_SETTING, MaxEvent) , "RECREATE")
 d_Cut_Pion_Events_Accpt_Data_Cut_All = outHistFile.mkdir("Cut_Pion_Events_Accpt_Data_Cut_All")
 d_Cut_Pion_Events_Prompt_Data_Cut_All = outHistFile.mkdir("Cut_Pion_Events_Prompt_Data_Cut_All")
 d_Cut_Pion_Events_Random_Data_Cut_All = outHistFile.mkdir("Cut_Pion_Events_Random_Data_Cut_All")
