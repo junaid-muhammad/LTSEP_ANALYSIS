@@ -156,8 +156,8 @@ PHYSICS_YIELDS_DIR=${LTSEP_DIR_PATH}/LTSep_CSVs/physics_yields_csv
 SIMC_YIELDS_DIR=${LTSEP_DIR_PATH}/LTSep_CSVs/simc_yields_csv
 T_BINNING_DIR=${LTSEP_DIR_PATH}/LTSep_CSVs/t_binning_csv
 T_RESOLUTION_DIR=${LTSEP_DIR_PATH}/LTSep_CSVs/t_resolution_csv
-INPUT_DIR=${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/iter${ITERATION}/input_files
-OUTPUT_DIR=${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/iter${ITERATION}/output_files
+INPUT_DIR=${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/input_files
+OUTPUT_DIR=${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/output_files
 
 directories_csv=("${RECON_SIMC_PATH}" "${RATIO_DIR}" "${LTSEP_INPUT_DIR}" "${SIMC_YIELDS_DIR}" "${AVG_KIN_DIR}" "${INPUT_DIR}" "${OUTPUT_DIR}")
 for dir in "${directories_csv[@]}"; do
@@ -186,14 +186,14 @@ for i in "${!csv_types[@]}"; do
     fi
 done
 
-# Only move SIMC files for iteration 00
+# Only move SIMC files for iteration
 if [[ "${ITERATION}" == "00" ]]; then
-    mkdir -p "${RAW_SIMC_PATH}/${PHY_SETTING_C}_iter${ITERATION}"
+    mkdir -p "${RAW_SIMC_PATH}/${PHY_SETTING_C}_itersimc"
     # Define source and destination directories
     simc_dirs=("${RAW_SIMC_PATH}" "${RECON_SIMC_PATH}")
     # Move SIMC files to standard directories
     for base_dir in "${simc_dirs[@]}"; do
-        dest_dir="${base_dir}/${PHY_SETTING_C}_iter${ITERATION}"
+        dest_dir="${base_dir}/${PHY_SETTING_C}_itersimc"
         # Create destination directory if it doesn't exist
         if [ ! -d "$dest_dir" ]; then
             mkdir -p "$dest_dir"
@@ -202,7 +202,7 @@ if [[ "${ITERATION}" == "00" ]]; then
         if ! ls ${dest_dir}/${SIMC_Suffix_C}* 1> /dev/null 2>&1; then
             if ls ${base_dir}/${SIMC_Suffix_C}* 1> /dev/null 2>&1; then
                 mv ${base_dir}/${SIMC_Suffix_C}* "$dest_dir/"
-                echo "Moved SIMC files to $(basename "$base_dir")/${PHY_SETTING_C}_iter${ITERATION}"
+                echo "Moved SIMC files to $(basename "$base_dir")/${PHY_SETTING_C}_itersimc"
             fi
         fi
     done
@@ -320,8 +320,8 @@ sleep 1
 # Section for cross-section script
 elif [[ $x_flag == "true" ]]; then
     ITERATION="std"
-    INPUT_STD_DIR="${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/${ITERATION}/input_files"
-    OUTPUT_STD_DIR="${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/${ITERATION}/output_files"
+    INPUT_STD_DIR="${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/input_files/${PHY_SETTING_C}_${ITERATION}"
+    OUTPUT_STD_DIR="${BKUP_DIR}/${PHY_SETTING_C}_ltanalysis/output_files/${PHY_SETTING_C}_${ITERATION}"
     std_dirs=("${INPUT_STD_DIR}" "${OUTPUT_STD_DIR}")
     for dir in "${std_dirs[@]}"; do
         if [ ! -d "$dir" ]; then
@@ -333,7 +333,7 @@ elif [[ $x_flag == "true" ]]; then
     # Copy files first
     lt_PHY_SETTING_INP_PATH="${REPLAYPATH}/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/${PHY_SETTING_C}_${ITERATION}"
     if compgen -G "${lt_PHY_SETTING_INP_PATH}/*" > /dev/null; then
-        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_STD_DIR}/"
+        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_STD_DIR}/${PHY_SETTING_C}_${ITERATION}"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_Eb"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_t_bin"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_list_setting"* "input/"
@@ -375,9 +375,9 @@ elif [[ $x_flag == "true" ]]; then
                 if compgen -G "output/*" > /dev/null; then
                     read -p "Are you sure you want to copy output files to ${OUTPUT_STD_DIR}? (y/n): " confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                        cp output/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}/"
-                        cp xsects/${PHY_SETTING_C}_* "${OUTPUT_STD_DIR}/"
-                        cp plots/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}/"
+                        cp output/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
+                        cp xsects/${PHY_SETTING_C}_* "${OUTPUT_STD_DIR}"
+                        cp plots/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
                         echo "Output files copied to ${OUTPUT_STD_DIR}."
                     else
                         echo "Copy operation cancelled."
@@ -406,7 +406,7 @@ elif [[ $i_flag == "true" ]]; then
     # 1. Copy files first
     lt_PHY_SETTING_INP_PATH="${REPLAYPATH}/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/${PHY_SETTING_C}_iter${ITERATION}"
     if compgen -G "${lt_PHY_SETTING_INP_PATH}/*" > /dev/null; then
-        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_DIR}/"
+        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_Eb"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_t_bin"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_list_setting"* "input/"
@@ -441,9 +441,8 @@ elif [[ $i_flag == "true" ]]; then
                 if compgen -G "output/*" > /dev/null; then
                     read -p "Are you sure you want to copy output files to ${OUTPUT_DIR}? (y/n): " confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                        cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/"
-                        cp xsects/${PHY_SETTING_C}_* "${OUTPUT_DIR}/"
-                        cp plots/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/"
+                        cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        cp xsects/${PHY_SETTING_C}_* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
                         echo "Output files copied to ${OUTPUT_DIR}."
                     else
                         echo "Copy operation cancelled."
@@ -485,15 +484,14 @@ elif [[ $p_flag == "true" ]]; then
                 if compgen -G "output/*" > /dev/null; then
                     read -p "Are you sure you want to copy output files to ${OUTPUT_DIR}? (y/n): " confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                        cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/"
-                        cp plots/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/"
+                        cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        cp plots/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
                         next_iter=$(printf "%02d" $((10#$ITERATION + 1)) 2>/dev/null)
                         if [ ! -d "fit_params/iter${next_iter}" ]; then
                             mkdir -p "fit_params/iter${next_iter}"
                         fi
-                        for f in output/new_fitparams_iter${ITERATION}_par.pl*; do
-                            newname="${f#output/new_fitparams_iter${ITERATION}_}"
-                            mv "$f" "fit_params/iter${next_iter}/${newname}"
+                        for f in output/new_fitparams_iter${next_iter}_par.pl*; do
+                            mv "$f" "fit_params/iter${next_iter}/par.pl_${Q2_val}"
                         done
                         echo "Output files copied to ${OUTPUT_DIR}."
                     else
@@ -517,7 +515,7 @@ sleep 1
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Section for plotting cross-sections
+# Section for SIMC weight recalculation
 elif [[ $w_flag == "true" ]]; then
     cd $REPLAYPATH/LTSEP_ANALYSIS/src/
     while true; do
@@ -525,9 +523,14 @@ elif [[ $w_flag == "true" ]]; then
         case $yn in
             [Yy]* )
                 python3 reweight_simc.py "${PHY_SETTING_C}" "${ITERATION}" "${SIMC_Suffix}"
-                ITERATION_PREV=$(printf "%02d" $((10#$ITERATION - 1)))
-                HISTPATH="${VOLATILEPATH}/OUTPUT/Analysis/SIMC"
-                cp  "${HISTPATH}/${PHY_SETTING_C}_iter${ITERATION_PREV}/${SIMC_Suffix}.hist" "${HISTPATH}/${PHY_SETTING_C}_iter${ITERATION}"
+                if [ "${ITERATION}" == "00" ]; then
+                    HISTPATH="${VOLATILEPATH}/OUTPUT/Analysis/SIMC"
+                    cp  "${HISTPATH}/${PHY_SETTING_C}_itersimc/${SIMC_Suffix}.hist" "${HISTPATH}/${PHY_SETTING_C}_iter${ITERATION}/"
+                else
+                    ITERATION_PREV=$(printf "%02d" $((10#$ITERATION - 1)))
+                    HISTPATH="${VOLATILEPATH}/OUTPUT/Analysis/SIMC"
+                    cp  "${HISTPATH}/${PHY_SETTING_C}_iter${ITERATION_PREV}/${SIMC_Suffix}.hist" "${HISTPATH}/${PHY_SETTING_C}_iter${ITERATION}/"
+                fi
                 break
                 ;;
             [Nn]* )

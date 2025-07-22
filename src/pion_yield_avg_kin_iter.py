@@ -214,6 +214,12 @@ merged_avg_loweps_df.insert(0, "Physics_Setting", f"{PHY_SETTING}_loweps")
 def error_weighted_ratio_loweps(row):
     y1, e1 = row["ratio_loweps_center"], row["ratio_error_loweps_center"]
     y2, e2 = row["ratio_loweps_left"], row["ratio_error_loweps_left"]
+    
+    # Handle zero or very small errors to avoid division by zero
+    min_error = 1e-10  # Minimum error threshold
+    e1 = max(e1, min_error)
+    e2 = max(e2, min_error)
+    
     # Compute weights (inverse variance)
     weights = 1 / np.array([e1**2, e2**2])
     ratios = np.array([y1, y2])
@@ -314,6 +320,13 @@ def error_weighted_ratio_higheps(row):
     y1, e1 = row["ratio_higheps_right"], row["ratio_error_higheps_right"]
     y2, e2 = row["ratio_higheps_center"], row["ratio_error_higheps_center"]
     y3, e3 = row["ratio_higheps_left"], row["ratio_error_higheps_left"]
+    
+    # Handle zero or very small errors to avoid division by zero
+    min_error = 1e-10  # Minimum error threshold
+    e1 = max(e1, min_error)
+    e2 = max(e2, min_error)
+    e3 = max(e3, min_error)
+    
     # Compute weights (inverse variance)
     weights = 1 / np.array([e1**2, e2**2, e3**2])
     ratios = np.array([y1, y2, y3])
@@ -393,6 +406,12 @@ def error_weighted_avgkin_data(row):
     for var in vars:
         values = [row[f"{var}_{sfx}"] for sfx in suffixes]
         errors = [row[f"{var}_err_{sfx}"] for sfx in suffixes]
+        
+        # Handle zero or very small errors to avoid division by zero
+        errors = np.array(errors)
+        min_error = 1e-10  # Minimum error threshold
+        errors = np.where(errors <= min_error, min_error, errors)
+        
         weights = 1 / np.square(errors)
         weighted_avg = np.sum(np.array(values) * weights) / np.sum(weights)
         weighted_avg_err = np.sqrt(1 / np.sum(weights))
@@ -434,7 +453,6 @@ merged_simc_all = loweps_center.merge(loweps_left, on=bin_avgkin_keys, how='oute
     .merge(higheps_left,   on=bin_avgkin_keys, how='outer')
 #print(list(merged_data_all.columns))
 
-# Perform error-weighted average for merged simc
 def error_weighted_avgkin_simc(row):
     vars = ["avg_Q2", "avg_W"]
     suffixes = ["loweps_center", "loweps_left", "higheps_right", "higheps_center", "higheps_left"]
@@ -442,6 +460,12 @@ def error_weighted_avgkin_simc(row):
     for var in vars:
         values = [row[f"{var}_{sfx}"] for sfx in suffixes]
         errors = [row[f"{var}_err_{sfx}"] for sfx in suffixes]
+        
+        # Handle zero or very small errors to avoid division by zero
+        errors = np.array(errors)
+        min_error = 1e-10  # Minimum error threshold
+        errors = np.where(errors <= min_error, min_error, errors)
+        
         weights = 1 / np.square(errors)
         weighted = np.sum(np.array(values) * weights) / np.sum(weights)
         weighted_err = np.sqrt(1 / np.sum(weights))
