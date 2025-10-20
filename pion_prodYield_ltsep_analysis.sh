@@ -188,12 +188,12 @@ done
 
 # Only move SIMC files for iteration
 if [[ "${ITERATION}" == "00" ]]; then
-    mkdir -p "${RAW_SIMC_PATH}/${PHY_SETTING_C}_itersimc"
+    mkdir -p "${RAW_SIMC_PATH}/${PHY_SETTING_C}_iter${ITERATION}"
     # Define source and destination directories
     simc_dirs=("${RAW_SIMC_PATH}" "${RECON_SIMC_PATH}")
     # Move SIMC files to standard directories
     for base_dir in "${simc_dirs[@]}"; do
-        dest_dir="${base_dir}/${PHY_SETTING_C}_itersimc"
+        dest_dir="${base_dir}/${PHY_SETTING_C}_iter${ITERATION}"
         # Create destination directory if it doesn't exist
         if [ ! -d "$dest_dir" ]; then
             mkdir -p "$dest_dir"
@@ -202,7 +202,7 @@ if [[ "${ITERATION}" == "00" ]]; then
         if ! ls ${dest_dir}/${SIMC_Suffix_C}* 1> /dev/null 2>&1; then
             if ls ${base_dir}/${SIMC_Suffix_C}* 1> /dev/null 2>&1; then
                 mv ${base_dir}/${SIMC_Suffix_C}* "$dest_dir/"
-                echo "Moved SIMC files to $(basename "$base_dir")/${PHY_SETTING_C}_itersimc"
+                echo "Moved SIMC files to $(basename "$base_dir")/${PHY_SETTING_C}_iter${ITERATION}"
             fi
         fi
     done
@@ -333,7 +333,7 @@ elif [[ $x_flag == "true" ]]; then
     # Copy files first
     lt_PHY_SETTING_INP_PATH="${REPLAYPATH}/LTSEP_ANALYSIS/LTSep_CSVs/ltsep_input_csv/${PHY_SETTING_C}_${ITERATION}"
     if compgen -G "${lt_PHY_SETTING_INP_PATH}/*" > /dev/null; then
-        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_STD_DIR}/${PHY_SETTING_C}_${ITERATION}"
+        cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_"* "${INPUT_STD_DIR}/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_Eb"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_t_bin"* "input/"
         cp "${lt_PHY_SETTING_INP_PATH}/${PHY_SETTING_C}_list_setting"* "input/"
@@ -375,9 +375,9 @@ elif [[ $x_flag == "true" ]]; then
                 if compgen -G "output/*" > /dev/null; then
                     read -p "Are you sure you want to copy output files to ${OUTPUT_STD_DIR}? (y/n): " confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                        cp output/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
-                        cp xsects/${PHY_SETTING_C}_* "${OUTPUT_STD_DIR}"
-                        cp plots/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
+                        mv output/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
+                        mv xsects/${PHY_SETTING_C}_* "${OUTPUT_STD_DIR}"
+                        mv plots/${PHY_SETTING_C}_*std* "${OUTPUT_STD_DIR}"
                         echo "Output files copied to ${OUTPUT_STD_DIR}."
                     else
                         echo "Copy operation cancelled."
@@ -443,6 +443,7 @@ elif [[ $i_flag == "true" ]]; then
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
                         cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
                         cp xsects/${PHY_SETTING_C}_* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        cp fit_params/iter${ITERATION}/* "${INPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
                         echo "Output files copied to ${OUTPUT_DIR}."
                     else
                         echo "Copy operation cancelled."
@@ -484,14 +485,15 @@ elif [[ $p_flag == "true" ]]; then
                 if compgen -G "output/*" > /dev/null; then
                     read -p "Are you sure you want to copy output files to ${OUTPUT_DIR}? (y/n): " confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                        cp output/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
-                        cp plots/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        mv xsects/${PHY_SETTING_C}_* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        mv output/*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
+                        mv plots/${PHY_SETTING_C}_*iter${ITERATION}* "${OUTPUT_DIR}/${PHY_SETTING_C}_iter${ITERATION}/"
                         next_iter=$(printf "%02d" $((10#$ITERATION + 1)) 2>/dev/null)
                         if [ ! -d "fit_params/iter${next_iter}" ]; then
                             mkdir -p "fit_params/iter${next_iter}"
                         fi
                         for f in output/new_fitparams_iter${next_iter}_par.pl*; do
-                            mv "$f" "fit_params/iter${next_iter}/par.pl_${Q2_val}"
+                            cp "$f" "fit_params/iter${next_iter}/par.pl_${Q2_val}"
                         done
                         echo "Output files copied to ${OUTPUT_DIR}."
                     else

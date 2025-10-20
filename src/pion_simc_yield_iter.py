@@ -174,10 +174,10 @@ t_max_values = tbin_df['t_max'].values
 
 # Define the cuts using row 1 and row 3 values
 tbin_Cut1 = lambda event: (t_min_values[0] <= -event.t <= t_max_values[0])  # Row 1
-tbin_Cut2 = lambda event: (t_min_values[1] < -event.t <= t_max_values[1])  # Row 2
-tbin_Cut3 = lambda event: (t_min_values[2] < -event.t <= t_max_values[2])  # Row 3
-tbin_Cut4 = lambda event: (t_min_values[3] < -event.t <= t_max_values[3])  # Row 4
-tbin_Cut5 = lambda event: (t_min_values[4] < -event.t <= t_max_values[4])  # Row 5
+tbin_Cut2 = lambda event: (t_min_values[1] <= -event.t <= t_max_values[1])  # Row 2
+tbin_Cut3 = lambda event: (t_min_values[2] <= -event.t <= t_max_values[2])  # Row 3
+tbin_Cut4 = lambda event: (t_min_values[3] <= -event.t <= t_max_values[3])  # Row 4
+tbin_Cut5 = lambda event: (t_min_values[4] <= -event.t <= t_max_values[4])  # Row 5
 
 # Bundle them into a list
 tbin_cuts = [tbin_Cut1, tbin_Cut2, tbin_Cut3, tbin_Cut4, tbin_Cut5]
@@ -350,18 +350,6 @@ for event in Uncut_Pion_Events_SIMC_tree:
                 for tmin_hist, tmax_hist, phimin_hist, phimax_hist, hist_set in data_histograms_by_tphi_cut:
                     if tmin == tmin_hist and tmax == tmax_hist and phimin_hist <= phi_deg <= phimax_hist:
                         hist_set["simc"]["MMpi"].Fill(event.missmass, event.Weight)
-                        break  # Only fill in the matching t–φ bin
-
-for event in Uncut_Pion_Events_SIMC_tree:
-    # Apply the MMpi cut and Diamond cut
-    if HMS_Acceptance(event) and SHMS_Acceptance(event) and SIMC_MMpi_Cut(event) and Diamond_Cut(event):
-        # Loop over t-bins
-        for tbin_cut, (tmin, tmax) in zip(tbin_cuts, zip(t_min_values, t_max_values)):
-            if tbin_cut(event):  # Apply the t-bin cut
-                # Fill MMπ per t–φ bin
-                phi_deg = event.phipq * (180 / math.pi) + 180  # Convert φ to degrees in [0, 360]
-                for tmin_hist, tmax_hist, phimin_hist, phimax_hist, hist_set in data_histograms_by_tphi_cut:
-                    if tmin == tmin_hist and tmax == tmax_hist and phimin_hist <= phi_deg <= phimax_hist:
                         hist_set["simc_raw"]["MMpi"].Fill(event.missmass)
                         break  # Only fill in the matching t–φ bin
 
