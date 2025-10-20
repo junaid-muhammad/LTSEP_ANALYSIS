@@ -366,7 +366,7 @@ c     1        * (exp(fitpar(3) * abs(t_gev)))
 c      sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
 c     1        * (exp(fitpar(3) * abs(t_gev))/abs(t_gev))
 
-      sigt = (fitpar(1) / Q2_gev) * (fitpar(2) / abs(t_gev))
+      sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
      1        * (exp(fitpar(3) * abs(t_gev)))
 
 c-------------------------------------------------------------------------
@@ -460,7 +460,7 @@ c     1       ((exp(fitpar(15) * abs(t_gev))) *
 c     2       (fitpar(16)/(abs(t_gev))**3))) * sin(thetacm)**2
 
       sigtt=((fitpar(13)/(Q2_gev)) +
-     1     (fitpar(14)/(abs(t_gev)))+ 
+     1     (fitpar(14)/(abs(t_gev))) + 
      2       ((exp(fitpar(15) * abs(t_gev))) * 
      3       (fitpar(16)/(abs(t_gev))**3))) * sin(thetacm)**2
 

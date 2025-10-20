@@ -453,7 +453,7 @@ def sigma_T_root_func(x, par):
 #    return (W_factor * (((par[0] / Q2) + (par[1] / (Q2**2))) * (np.exp(par[2] * np.abs(var_tcm)))))
 #    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm)))))
 #    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm))/np.abs(var_tcm))))
-    return(W_factor * ((par[0] / Q2) * (par[1]/np.abs(var_tcm)) * (np.exp(par[2] * np.abs(var_tcm)))))
+    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm)))))
 
 sigma_T_root = ROOT.TF1("sigma_T_func", sigma_T_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 3)
 #p3 = -0.5
@@ -484,9 +484,7 @@ def sigma_L_root_func(x, par):
     W_factor = 1.0 / (W**2 - m_p**2)**2
 #    return (par[0] * Q2 * np.exp((par[1] - par[2] * np.log(Q2)) * np.abs(var_tcm))) / (1 + par[3] * Q2 + par[4] * (Q2**2))**2
 #    return (W_factor * ((par[0] + par[1] / Q2) * np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2 * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
-#    return (W_factor * ((par[0] + par[1] / Q2) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
     return (W_factor * ((par[0] + par[1] / Q2) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
-
 sigma_L_root = ROOT.TF1("sigma_L_func", sigma_L_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 5)
 #p6 = 0.08
 sigma_L_root.SetParameters(p4, p5, p6, p7, p8)  # All parameters are fitted
@@ -536,8 +534,7 @@ def sigma_LT_root_func(x, par):
 #    return (W_factor * (((par[0] / (Q2)) + ((np.exp(-par[1] * np.abs(var_tcm))) * (par[2] * np.abs(var_tcm)**par[3]))) * np.sin(theta)))
     return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**2))) * np.sin(theta)))
 sigma_LT_root = ROOT.TF1("sigma_LT_func", sigma_LT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
-#p11 = -1
-p11 = -0.6
+p11 = -1
 
 sigma_LT_root.SetParameters(p9, p10, p11, p12)  # All parameters are fitted
 # Control parameter fixing for σLT
@@ -578,12 +575,10 @@ def sigma_TT_root_func(x, par):
 #    return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))) + ((np.exp(par[2] / np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(2 * theta)))
 #    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] / np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))**3)) * np.sin(theta)**2))
 #    return (W_factor * (((par[0] / (Q2)**2) + (par[1] * (np.abs(var_tcm))) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(2 * theta)))
-    return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(theta)**2))
+    return (W_factor * (((par[0] / (Q2)) + (par[1]/np.abs(var_tcm)) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(theta)**2))
 
 sigma_TT_root = ROOT.TF1("sigma_TT_func", sigma_TT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
-#p15 = -3
-p15 = -13
-
+p15 = -6
 sigma_TT_root.SetParameters(p13, p14, p15, p16)  # All parameters are fitted
 # Control parameter fixing for σTT
 if not FIT_SIGMA_TT:
@@ -764,7 +759,6 @@ params = [
     (sigma_TT_root.GetParameter(1), sigma_TT_root.GetParError(1), 'fitted' if FIT_SIGMA_TT else 'fixed'), # p14
     (sigma_TT_root.GetParameter(2), sigma_TT_root.GetParError(2), 'fitted' if FIT_SIGMA_TT else 'fixed'),  # p15
     (sigma_TT_root.GetParameter(3), sigma_TT_root.GetParError(3), 'fitted' if FIT_SIGMA_TT else 'fixed')  # p16
-#    (p16, 0.0, 'fixed')  # p16 (not fitted in this implementation)
 ]
 
 # Check for any problematic fits and warn user
