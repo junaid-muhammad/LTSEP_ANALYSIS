@@ -175,6 +175,8 @@ SIMC_MMpi_Cut = lambda event: (MM_Cut_lowvalue <= event.missmass <= MM_Cut_highv
 # SIMC Cuts for Pions Selection
 HMS_Acceptance = lambda event: (event.hsdelta >= -8.0) & (event.hsdelta <= 8.0) & (event.hsxpfp >= -0.08) & (event.hsxpfp <= 0.08) & (event.hsypfp >= -0.045) & (event.hsypfp <= 0.045)
 SHMS_Acceptance = lambda event: (event.ssdelta >= -10.0) & (event.ssdelta <= 20.0) & (event.ssxpfp >= -0.06) & (event.ssxpfp <= 0.06) & (event.ssypfp >= -0.04) & (event.ssypfp <= 0.04)
+#SHMS_Aero_Cut = lambda event: (event.paero_x_det > -55.0) & (event.paero_x_det < 55.0) & (event.paero_y_det > -50) & (event.paero_y_det < 50) # Aerogel tray n = 1.030
+SHMS_Aero_Cut = lambda event: (event.paero_x_det > -45.0) & (event.paero_x_det < 45.0) & (event.paero_y_det > -30) & (event.paero_y_det < 30) # Aerogel tray n = 1.011
 
 #########################################################################################################################################
 
@@ -264,6 +266,7 @@ df = pd.read_csv(eff_csv_file_name)
 filtered_data_df = df[df['Run_Number'].astype(str).str.replace('.0', '', regex=False).isin(data_runs)]
 filtered_dummy_df = df[df['Run_Number'].astype(str).str.replace('.0', '', regex=False).isin(dummy_runs)]
 
+
 # Intializing Variables to calculate the product of efficiency and charge
 total_data_effective_charge = 0.0
 total_dummy_effective_charge = 0.0
@@ -284,69 +287,39 @@ row_data = []
 
 # Print charge values for each run
 for index, row in filtered_data_df.iterrows():
-    data_charge = row['BCM2_Beam_Cut_Charge']  # Assuming 'BCM2_Charge' is a column in your CSV
-    data_hms_tracking_efficiency = row['HMS_Elec_SING_TRACK_EFF']  # Assuming 'HMS Tracking_Efficiency' is a column in your CSV
-    data_shms_tracking_efficiency = row['SHMS_Prot_SING_TRACK_EFF']  # Assuming 'SHMS Tracking_Efficiency' is a column in your CSV
+    data_charge = row['Corrected_Charge'] 
+    data_charge_error = row['Corrected_Charge_ERROR']
+    data_Boiling_factor = row['Target_BoilingCorr']
+    data_Boiling_factor_error = row['Target_BoilingCorr_ERROR']
+    data_edtm_livetime_Corr = row['Non_Scaler_EDTM_Live_Time_Corr']
+    data_edtm_livetime_Corr_error = row['Non_Scaler_EDTM_Live_Time_Corr_ERROR']
+    data_coinblocking_factor = row['CoinBlocking']
+    data_coinblocking_factor_error = row['CoinBlocking_ERROR']
+
+    data_hms_tracking_efficiency = row['HMS_Elec_SING_TRACK_EFF'] 
+    data_shms_tracking_efficiency = row['SHMS_Pion_SING_TRACK_EFF'] 
+    data_hms_tracking_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
+    data_shms_tracking_efficiency_error = row['SHMS_Pion_SING_TRACK_EFF_ERROR']
+
     data_hms_hodo_3_of_4_efficiency = row['HMS_Hodo_3_of_4_EFF']
     data_shms_hodo_3_of_4_efficiency = row['SHMS_Hodo_3_of_4_EFF']
-#    data_shms_hodo_3_of_4_efficiency = 0.99
-    data_edtm_livetime_Corr = row['Non_Scaler_EDTM_Live_Time_Corr']
-    data_BCM2_Beam_Cut_Current = row['BCM2_Beam_Cut_Current']
-
-    data_hms_tracking_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
-    data_shms_tracking_efficiency_error = row['SHMS_Prot_SING_TRACK_EFF_ERROR']
-    data_edtm_livetime_Corr_error = row['Non_Scaler_EDTM_Live_Time_Corr_ERROR']
     data_hms_hodo_3_of_4_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
-    data_shms_hodo_3_of_4_efficiency_error = row['SHMS_Prot_SING_TRACK_EFF_ERROR']
-
+    data_shms_hodo_3_of_4_efficiency_error = row['SHMS_Pion_SING_TRACK_EFF_ERROR']
 #    data_hms_hodo_3_of_4_efficiency_error = row['HMS_Hodo_3_of_4_EFF_ERROR']
 #    data_shms_hodo_3_of_4_efficiency_error = row['SHMS_Hodo_3_of_4_EFF_ERROR']
-#    data_BCM2_Beam_Cut_Current_error = row['BCM2_Beam_Cut_Current_ERROR']
 
-    # Nathan's, Richard's and Vijay's Boiling Correction
-    data_Boiling_factor = 1 + (-0.00028 * data_BCM2_Beam_Cut_Current)
-#    data_Boiling_factor = 1 + (-0.0007899 * data_BCM2_Beam_Cut_Current)
-#    data_Boiling_factor = 1 + (-0.0005296 * data_BCM2_Beam_Cut_Current)
-#    data_Boiling_factor_error = abs(-0.0007899 * data_BCM2_Beam_Cut_Current_error)
+    data_shms_aero_detector_efficiency = row['SHMS_Aero_COIN_Pion_Eff']
+    data_shms_aero_detector_efficiency_error = row['SHMS_Aero_COIN_Pion_Eff_ERROR']
 
-    data_BCM2_Beam_Cut_Current_error = 0.0
-    data_Boiling_factor_error = 0.0
-
-    # Calculating Current and Charge uncertainties
-    data_run_number = row['Run_Number']
-    data_run_time = row['BCM_Cut_HMS_Run_Length']
-    if data_run_number <= 11988:
-        data_slope = 5598.59 * 1000
-        data_d_slope = 26.7 * 1000
-        data_amplitude = 250356
-        data_d_amplitude = 606.91
-    elif 11988 < data_run_number <= 14777:
-        data_slope = 5513.79 * 1000
-        data_d_slope = 7.6  * 1000
-        data_amplitude = 250429
-        data_d_amplitude = 271
-    elif 14777 < data_run_number <= 17000:
-        data_slope = 5542 * 1000
-        data_d_slope = 11.5  * 1000
-        data_amplitude = 250029
-        data_d_amplitude = 270
-    else:
-        print("Requires correct run number")
-        continue
-
-    data_charge_error = math.sqrt(((data_charge * data_d_slope)**2 + (data_d_amplitude * data_run_time)**2)/(data_slope)**2)
-    data_BCM2_Beam_Cut_Current_error = data_BCM2_Beam_Cut_Current * math.sqrt((data_d_slope/data_slope)**2 + (data_d_amplitude / (data_slope * data_BCM2_Beam_Cut_Current))**2)
-    data_Boiling_factor_error = data_Boiling_factor * math.sqrt((data_BCM2_Beam_Cut_Current_error/data_BCM2_Beam_Cut_Current)** 2 + (0.000017/0.00028)**2)
-
-    data_product = (data_charge * data_hms_tracking_efficiency * data_shms_tracking_efficiency * hms_Cer_detector_efficiency * hms_Cal_detector_efficiency * data_hms_hodo_3_of_4_efficiency * data_shms_hodo_3_of_4_efficiency * data_edtm_livetime_Corr * data_Boiling_factor)
-    data_product_error = data_product * (math.sqrt((data_charge_error/data_charge)** 2 +  (data_hms_tracking_efficiency_error/data_hms_tracking_efficiency)** 2 + (data_shms_tracking_efficiency_error/data_shms_tracking_efficiency)** 2 + (data_edtm_livetime_Corr_error/data_edtm_livetime_Corr)** 2 + (hms_Cer_detector_efficiency_error/hms_Cer_detector_efficiency)** 2 + (hms_Cal_detector_efficiency_error/hms_Cal_detector_efficiency)** 2 + (data_hms_hodo_3_of_4_efficiency_error/data_hms_hodo_3_of_4_efficiency)** 2 + (data_shms_hodo_3_of_4_efficiency_error/data_shms_hodo_3_of_4_efficiency)** 2 + (data_Boiling_factor_error/data_Boiling_factor)** 2)) 
+    data_product = (data_charge * data_hms_tracking_efficiency * data_shms_tracking_efficiency * hms_Cer_detector_efficiency * hms_Cal_detector_efficiency * data_hms_hodo_3_of_4_efficiency * data_shms_hodo_3_of_4_efficiency * data_shms_aero_detector_efficiency * data_edtm_livetime_Corr * data_Boiling_factor * data_coinblocking_factor)
+    data_product_error = data_product * (math.sqrt((data_charge_error/data_charge)** 2 +  (data_hms_tracking_efficiency_error/data_hms_tracking_efficiency)** 2 + (data_shms_tracking_efficiency_error/data_shms_tracking_efficiency)** 2 + (data_edtm_livetime_Corr_error/data_edtm_livetime_Corr)** 2 + (hms_Cer_detector_efficiency_error/hms_Cer_detector_efficiency)** 2 + (hms_Cal_detector_efficiency_error/hms_Cal_detector_efficiency)** 2 + (data_hms_hodo_3_of_4_efficiency_error/data_hms_hodo_3_of_4_efficiency)** 2 + (data_shms_hodo_3_of_4_efficiency_error/data_shms_hodo_3_of_4_efficiency)**2 + (data_shms_aero_detector_efficiency_error/data_shms_aero_detector_efficiency)**2 + (data_Boiling_factor_error/data_Boiling_factor)** 2 + (data_coinblocking_factor_error/data_coinblocking_factor)**2)) 
 
     total_data_effective_charge_sum += data_product
     total_data_effective_charge_error_sum += (data_product_error)** 2
 
-    print('Charge for data run: {:<10} Data Charge: {:.3f} HMS Tracking Eff: {:.3f} SHMS Tracking Eff: {:.3f} HMS Cer Detector Eff: {:.3f} HMS Cal Detector_Eff: {:.3f} HMS Hodo 3/4 Eff: {:.3f} SHMS Hodo 3/4 Eff: {:.3f} EDTM Live Time: {:.3f} Data Current: {:.3f} Boiling Correction: {:.3f} Product: {:.3f}'.format(row["Run_Number"], data_charge, data_hms_tracking_efficiency, data_shms_tracking_efficiency, hms_Cer_detector_efficiency, hms_Cal_detector_efficiency, data_hms_hodo_3_of_4_efficiency, data_shms_hodo_3_of_4_efficiency, data_edtm_livetime_Corr, data_BCM2_Beam_Cut_Current, data_Boiling_factor, data_product))
+    print('Charge for data run: {:<10} Data Charge: {:.3f} HMS Tracking Eff: {:.3f} SHMS Tracking Eff: {:.3f} HMS Cer Detector Eff: {:.3f} HMS Cal Detector_Eff: {:.3f} HMS Hodo 3/4 Eff: {:.3f} SHMS Hodo 3/4 Eff: {:.3f} SHMS Aero Detector Eff: {:.3f} EDTM Live Time: {:.3f} Boiling Correction: {:.3f} Coin Blocking: {:.3f} Product: {:.3f}'.format(row["Run_Number"], data_charge, data_hms_tracking_efficiency, data_shms_tracking_efficiency, hms_Cer_detector_efficiency, hms_Cal_detector_efficiency, data_hms_hodo_3_of_4_efficiency, data_shms_hodo_3_of_4_efficiency, data_shms_aero_detector_efficiency, data_edtm_livetime_Corr, data_Boiling_factor, data_coinblocking_factor, data_product))
 
-    row_data.append({'Run_Number':row["Run_Number"], 'charge':data_charge, 'charge_error':data_charge_error, 'HMS_Tracking_Eff':data_hms_tracking_efficiency, 'HMS_Tracking_Eff_error':data_hms_tracking_efficiency_error, 'SHMS_Tracking_Eff':data_shms_tracking_efficiency, 'SHMS_Tracking_Eff_error':data_shms_tracking_efficiency_error, 'HMS_Cer_Detector_Eff':hms_Cer_detector_efficiency, 'HMS_Cer_Detector_Eff_error':hms_Cer_detector_efficiency_error, 'HMS_Cal_Detector_Eff':hms_Cal_detector_efficiency, 'HMS_Cal_Detector_Eff_error':hms_Cal_detector_efficiency_error, 'HMS_Hodo_3_4_Eff':data_hms_hodo_3_of_4_efficiency, 'HMS_Hodo_3_4_Eff_error':data_hms_hodo_3_of_4_efficiency_error, 'SHMS_Hodo_3_4_Eff':data_shms_hodo_3_of_4_efficiency, 'SHMS_Hodo_3_4_Eff_error':data_shms_hodo_3_of_4_efficiency_error, 'EDTM_Live_Time':data_edtm_livetime_Corr, 'EDTM_Live_Time_error':data_edtm_livetime_Corr_error, 'Boiling_factor':data_Boiling_factor, 'Boiling_factor_error':data_Boiling_factor_error, 'effective_charge':data_product, 'effective_charge_error':data_product_error})
+    row_data.append({'Run_Number':row["Run_Number"], 'charge':data_charge, 'charge_error':data_charge_error, 'HMS_Tracking_Eff':data_hms_tracking_efficiency, 'HMS_Tracking_Eff_error':data_hms_tracking_efficiency_error, 'SHMS_Tracking_Eff':data_shms_tracking_efficiency, 'SHMS_Tracking_Eff_error':data_shms_tracking_efficiency_error, 'HMS_Cer_Detector_Eff':hms_Cer_detector_efficiency, 'HMS_Cer_Detector_Eff_error':hms_Cer_detector_efficiency_error, 'HMS_Cal_Detector_Eff':hms_Cal_detector_efficiency, 'HMS_Cal_Detector_Eff_error':hms_Cal_detector_efficiency_error, 'HMS_Hodo_3_4_Eff':data_hms_hodo_3_of_4_efficiency, 'HMS_Hodo_3_4_Eff_error':data_hms_hodo_3_of_4_efficiency_error, 'SHMS_Hodo_3_4_Eff':data_shms_hodo_3_of_4_efficiency, 'SHMS_Hodo_3_4_Eff_error':data_shms_hodo_3_of_4_efficiency_error, 'SHMS Aerogel Eff':data_shms_aero_detector_efficiency, 'SHMS Aerogel Eff_error':data_shms_aero_detector_efficiency_error, 'EDTM_Live_Time':data_edtm_livetime_Corr, 'EDTM_Live_Time_error':data_edtm_livetime_Corr_error, 'Boiling_factor':data_Boiling_factor, 'Boiling_factor_error':data_Boiling_factor_error, 'Coin_Blocking':data_coinblocking_factor, 'Coin_Blocking_error':data_coinblocking_factor_error, 'effective_charge':data_product, 'effective_charge_error':data_product_error})
 
 print("-"*40)
 
@@ -358,60 +331,37 @@ total_data_effective_charge_error = math.sqrt(total_data_effective_charge_error_
 row_dummy = []
 
 for index, row in filtered_dummy_df.iterrows():
-    dummy_charge = row['BCM2_Beam_Cut_Charge']  # Assuming 'BCM2_Charge' is a column in your CSV
-    dummy_hms_tracking_efficiency = row['HMS_Elec_SING_TRACK_EFF']  # Assuming 'HMS Efficiency' is a column in your CSV
-    dummy_shms_tracking_efficiency = row['SHMS_Prot_SING_TRACK_EFF']  # Assuming 'SHMS Efficiency' is a column in your CSV
+    dummy_charge = row['Corrected_Charge'] 
+    dummy_charge_error = row['Corrected_Charge_ERROR']
+    dummy_edtm_livetime_Corr = row['Non_Scaler_EDTM_Live_Time_Corr']
+    dummy_edtm_livetime_Corr_error = row['Non_Scaler_EDTM_Live_Time_Corr_ERROR']
+    dummy_coinblocking_factor = row['CoinBlocking']
+    dummy_coinblocking_factor_error = row['CoinBlocking_ERROR']
+
+    dummy_hms_tracking_efficiency = row['HMS_Elec_SING_TRACK_EFF'] 
+    dummy_shms_tracking_efficiency = row['SHMS_Pion_SING_TRACK_EFF'] 
+    dummy_hms_tracking_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
+    dummy_shms_tracking_efficiency_error = row['SHMS_Pion_SING_TRACK_EFF_ERROR']
+
     dummy_hms_hodo_3_of_4_efficiency = row['HMS_Hodo_3_of_4_EFF']
     dummy_shms_hodo_3_of_4_efficiency = row['SHMS_Hodo_3_of_4_EFF']
-#    dummy_shms_hodo_3_of_4_efficiency = 0.99
-    dummy_edtm_livetime_Corr = row['Non_Scaler_EDTM_Live_Time_Corr']
-
-#    dummy_charge_error = row['BCM2_Charge_ERROR']
-    dummy_hms_tracking_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
-    dummy_shms_tracking_efficiency_error = row['SHMS_Prot_SING_TRACK_EFF_ERROR']
-    dummy_edtm_livetime_Corr_error = row['Non_Scaler_EDTM_Live_Time_Corr_ERROR']
     dummy_hms_hodo_3_of_4_efficiency_error = row['HMS_Elec_SING_TRACK_EFF_ERROR']
-    dummy_shms_hodo_3_of_4_efficiency_error = row['SHMS_Prot_SING_TRACK_EFF_ERROR']
-
+    dummy_shms_hodo_3_of_4_efficiency_error = row['SHMS_Pion_SING_TRACK_EFF_ERROR']
 #    dummy_hms_hodo_3_of_4_efficiency_error = row['HMS_Hodo_3_of_4_EFF_ERROR']
 #    dummy_shms_hodo_3_of_4_efficiency_error = row['SHMS_Hodo_3_of_4_EFF_ERROR']
 
-    # Calculating Current and Charge uncertainities
-    dummy_run_number = row['Run_Number']
-    dummy_run_time = row['BCM_Cut_HMS_Run_Length']
-    if dummy_run_number <= 11988:
-        dummy_slope = 5598.59 * 1000
-        dummy_d_slope = 26.7 * 1000
-        dummy_amplitude = 250356
-        dummy_d_amplitude = 606.91
-    elif 11988 < dummy_run_number <= 14777:
-        dummy_slope = 5513.79 * 1000
-        dummy_d_slope = 7.6 * 1000
-        dummy_amplitude = 250429
-        dummy_d_amplitude = 271
-    elif 14777 < dummy_run_number <= 17000:
-        dummy_slope = 5542 * 1000
-        dummy_d_slope = 11.5 * 1000
-        dummy_amplitude = 250029
-        dummy_d_amplitude = 270
-    else:
-        print("Requires correct run number")
-        continue
+    dummy_shms_aero_detector_efficiency = row['SHMS_Aero_COIN_Pion_Eff']
+    dummy_shms_aero_detector_efficiency_error = row['SHMS_Aero_COIN_Pion_Eff_ERROR']
 
-    dummy_charge_error = math.sqrt(((dummy_charge * dummy_d_slope)**2 + (dummy_d_amplitude * dummy_run_time)**2)/(dummy_slope)**2)
-
-#    dummy_charge_error = dummy_charge * math.sqrt((d_slope/slope)**2 + ((d_amplitude * dummy_run_time)/(slope * dummy_charge))**2)
-#    dummy_current_error = dummy_BCM2_Beam_Cut_Current * math.sqrt((d_slope/slope)**2 + (d_amplitude / (slope * dummy_BCM2_Beam_Cut_Current))**2)
-
-    dummy_product = (dummy_charge * dummy_hms_tracking_efficiency * dummy_shms_tracking_efficiency * hms_Cer_detector_efficiency * hms_Cal_detector_efficiency * dummy_hms_hodo_3_of_4_efficiency * dummy_shms_hodo_3_of_4_efficiency * dummy_edtm_livetime_Corr)
-    dummy_product_error = dummy_product * (math.sqrt(((dummy_charge_error/dummy_charge) ** 2 + dummy_hms_tracking_efficiency_error/dummy_hms_tracking_efficiency) ** 2 + (dummy_shms_tracking_efficiency_error/dummy_shms_tracking_efficiency) ** 2 + (dummy_edtm_livetime_Corr_error/dummy_edtm_livetime_Corr)** 2 + (hms_Cer_detector_efficiency_error/hms_Cer_detector_efficiency) ** 2 + (hms_Cal_detector_efficiency_error/hms_Cal_detector_efficiency) ** 2 + (dummy_hms_hodo_3_of_4_efficiency_error/dummy_hms_hodo_3_of_4_efficiency) ** 2 + (dummy_shms_hodo_3_of_4_efficiency_error/dummy_shms_hodo_3_of_4_efficiency) ** 2))
+    dummy_product = (dummy_charge * dummy_hms_tracking_efficiency * dummy_shms_tracking_efficiency * hms_Cer_detector_efficiency * hms_Cal_detector_efficiency * dummy_hms_hodo_3_of_4_efficiency * dummy_shms_hodo_3_of_4_efficiency * dummy_edtm_livetime_Corr * dummy_shms_aero_detector_efficiency * dummy_coinblocking_factor)
+    dummy_product_error = dummy_product * (math.sqrt(((dummy_charge_error/dummy_charge) ** 2 + dummy_hms_tracking_efficiency_error/dummy_hms_tracking_efficiency) ** 2 + (dummy_shms_tracking_efficiency_error/dummy_shms_tracking_efficiency) ** 2 + (dummy_edtm_livetime_Corr_error/dummy_edtm_livetime_Corr)** 2 + (hms_Cer_detector_efficiency_error/hms_Cer_detector_efficiency) ** 2 + (hms_Cal_detector_efficiency_error/hms_Cal_detector_efficiency) ** 2 + (dummy_hms_hodo_3_of_4_efficiency_error/dummy_hms_hodo_3_of_4_efficiency) ** 2 + (dummy_shms_hodo_3_of_4_efficiency_error/dummy_shms_hodo_3_of_4_efficiency) ** 2 + (dummy_shms_aero_detector_efficiency_error/dummy_shms_aero_detector_efficiency) ** 2 + (dummy_coinblocking_factor_error/dummy_coinblocking_factor)**2))
 
     total_dummy_effective_charge_sum += dummy_product
     total_dummy_effective_charge_error_sum += (dummy_product_error)** 2
 
-    print('Charge for dummy run: {:<10} Dummy Charge: {:.3f} HMS Tracking Eff: {:.3f} SHMS Tracking Eff: {:.3f} HMS Cer Detector Eff: {:.3f} HMS Cal Detector_Eff: {:.3f} HMS Hodo 3/4 Eff: {:.3f} SHMS Hodo 3/4 Eff: {:.3f} EDTM Live Time: {:.3f} Product: {:.3f}'.format(row["Run_Number"], dummy_charge, dummy_hms_tracking_efficiency, dummy_shms_tracking_efficiency, hms_Cer_detector_efficiency, hms_Cal_detector_efficiency, dummy_hms_hodo_3_of_4_efficiency, dummy_shms_hodo_3_of_4_efficiency, dummy_edtm_livetime_Corr, dummy_product))
+    print('Charge for dummy run: {:<10} Dummy Charge: {:.3f} HMS Tracking Eff: {:.3f} SHMS Tracking Eff: {:.3f} HMS Cer Detector Eff: {:.3f} HMS Cal Detector_Eff: {:.3f} HMS Hodo 3/4 Eff: {:.3f} SHMS Hodo 3/4 Eff: {:.3f} EDTM Live Time: {:.3f} SHMS Aerogel Eff: {:.3f} Coin Blocking: {:.3f} Product: {:.3f}'.format(row["Run_Number"], dummy_charge, dummy_hms_tracking_efficiency, dummy_shms_tracking_efficiency, hms_Cer_detector_efficiency, hms_Cal_detector_efficiency, dummy_hms_hodo_3_of_4_efficiency, dummy_shms_hodo_3_of_4_efficiency, dummy_edtm_livetime_Corr, dummy_shms_aero_detector_efficiency, dummy_coinblocking_factor, dummy_product))
 
-    row_dummy.append({'Run_Number':row["Run_Number"], 'charge':dummy_charge, 'charge_error':dummy_charge_error, 'HMS_Tracking_Eff':dummy_hms_tracking_efficiency, 'HMS_Tracking_Eff_error':dummy_hms_tracking_efficiency_error, 'SHMS_Tracking_Eff':dummy_shms_tracking_efficiency, 'SHMS_Tracking_Eff_error':dummy_shms_tracking_efficiency_error, 'HMS_Cer_Detector_Eff':hms_Cer_detector_efficiency, 'HMS_Cer_Detector_Eff_error':hms_Cer_detector_efficiency_error, 'HMS_Cal_Detector_Eff':hms_Cal_detector_efficiency, 'HMS_Cal_Detector_Eff_error':hms_Cal_detector_efficiency_error, 'HMS_Hodo_3_4_Eff':dummy_hms_hodo_3_of_4_efficiency, 'HMS_Hodo_3_4_Eff_error':dummy_hms_hodo_3_of_4_efficiency_error, 'SHMS_Hodo_3_4_Eff':dummy_shms_hodo_3_of_4_efficiency, 'SHMS_Hodo_3_4_Eff_error':dummy_shms_hodo_3_of_4_efficiency_error, 'EDTM_Live_Time':dummy_edtm_livetime_Corr, 'EDTM_Live_Time_error':dummy_edtm_livetime_Corr_error, 'Boiling_factor':'NA', 'Boiling_factor_error':'NA', 'effective_charge':dummy_product, 'effective_charge_error':dummy_product_error})
+    row_dummy.append({'Run_Number':row["Run_Number"], 'charge':dummy_charge, 'charge_error':dummy_charge_error, 'HMS_Tracking_Eff':dummy_hms_tracking_efficiency, 'HMS_Tracking_Eff_error':dummy_hms_tracking_efficiency_error, 'SHMS_Tracking_Eff':dummy_shms_tracking_efficiency, 'SHMS_Tracking_Eff_error':dummy_shms_tracking_efficiency_error, 'HMS_Cer_Detector_Eff':hms_Cer_detector_efficiency, 'HMS_Cer_Detector_Eff_error':hms_Cer_detector_efficiency_error, 'HMS_Cal_Detector_Eff':hms_Cal_detector_efficiency, 'HMS_Cal_Detector_Eff_error':hms_Cal_detector_efficiency_error, 'HMS_Hodo_3_4_Eff':dummy_hms_hodo_3_of_4_efficiency, 'HMS_Hodo_3_4_Eff_error':dummy_hms_hodo_3_of_4_efficiency_error, 'SHMS_Hodo_3_4_Eff':dummy_shms_hodo_3_of_4_efficiency, 'SHMS_Hodo_3_4_Eff_error':dummy_shms_hodo_3_of_4_efficiency_error, 'SHMS Aerogel Eff':dummy_shms_aero_detector_efficiency, 'SHMS Aerogel Eff_error':dummy_shms_aero_detector_efficiency_error, 'EDTM_Live_Time':dummy_edtm_livetime_Corr, 'EDTM_Live_Time_error':dummy_edtm_livetime_Corr_error, 'Boiling_factor':'NA', 'Boiling_factor_error':'NA', 'Coin_Blocking':dummy_coinblocking_factor, 'Coin_Blocking_error':dummy_coinblocking_factor_error, 'effective_charge':dummy_product, 'effective_charge_error':dummy_product_error})
 
 print("-"*40)
 
@@ -1312,7 +1262,10 @@ for event in Cut_Pion_Events_Prompt_Data_tree:
         pmiss_z_pions_data_prompt_cut_all.Fill(event.pmiss_z)
         emiss_pions_data_prompt_cut_all.Fill(event.emiss)
         W_pions_data_prompt_cut_all.Fill(event.W)
-        ph_q_pions_data_prompt_cut_all.Fill(event.ph_q * (180 / math.pi) + 180)
+        phi_deg = event.ph_q * (180 / math.pi)  # Convert φ to degrees
+        if phi_deg < 0:
+            phi_deg += 360  # Ensure φ is in [0, 360]
+        ph_q_pions_data_prompt_cut_all.Fill(phi_deg)
         Q2_pions_data_prompt_cut_all.Fill(event.Q2)
         Epsilon_pions_data_prompt_cut_all.Fill(event.epsilon)
         t_pions_data_prompt_cut_all.Fill(-event.MandelT)
@@ -1364,7 +1317,10 @@ for event in Cut_Pion_Events_Random_Data_tree:
         pmiss_z_pions_data_random_cut_all.Fill(event.pmiss_z)
         emiss_pions_data_random_cut_all.Fill(event.emiss)
         W_pions_data_random_cut_all.Fill(event.W)
-        ph_q_pions_data_random_cut_all.Fill(event.ph_q * (180 / math.pi) + 180)
+        phi_deg = event.ph_q * (180 / math.pi)  # Convert φ to degrees
+        if phi_deg < 0:
+            phi_deg += 360  # Ensure φ is in [0, 360]
+        ph_q_pions_data_random_cut_all.Fill(phi_deg)
         Q2_pions_data_random_cut_all.Fill(event.Q2)
         Epsilon_pions_data_random_cut_all.Fill(event.epsilon)
         t_pions_data_random_cut_all.Fill(-event.MandelT)
@@ -1417,7 +1373,10 @@ for event in Cut_Pion_Events_Prompt_Dummy_tree:
         pmiss_z_pions_dummy_prompt_cut_all.Fill(event.pmiss_z)
         emiss_pions_dummy_prompt_cut_all.Fill(event.emiss)
         W_pions_dummy_prompt_cut_all.Fill(event.W)
-        ph_q_pions_dummy_prompt_cut_all.Fill(event.ph_q * (180 / math.pi) + 180)
+        phi_deg = event.ph_q * (180 / math.pi)  # Convert φ to degrees
+        if phi_deg < 0:
+            phi_deg += 360  # Ensure φ is in [0, 360]
+        ph_q_pions_dummy_prompt_cut_all.Fill(phi_deg)
         Q2_pions_dummy_prompt_cut_all.Fill(event.Q2)
         Epsilon_pions_dummy_prompt_cut_all.Fill(event.epsilon)
         t_pions_dummy_prompt_cut_all.Fill(-event.MandelT)
@@ -1471,7 +1430,10 @@ for event in Cut_Pion_Events_Random_Dummy_tree:
         pmiss_z_pions_dummy_random_cut_all.Fill(event.pmiss_z)
         emiss_pions_dummy_random_cut_all.Fill(event.emiss)
         W_pions_dummy_random_cut_all.Fill(event.W)
-        ph_q_pions_dummy_random_cut_all.Fill(event.ph_q * (180 / math.pi) + 180)
+        phi_deg = event.ph_q * (180 / math.pi)  # Convert φ to degrees
+        if phi_deg < 0:
+            phi_deg += 360  # Ensure φ is in [0, 360]
+        ph_q_pions_dummy_random_cut_all.Fill(phi_deg)
         Q2_pions_dummy_random_cut_all.Fill(event.Q2)
         Epsilon_pions_dummy_random_cut_all.Fill(event.epsilon)
         t_pions_dummy_random_cut_all.Fill(-event.MandelT)
@@ -1480,7 +1442,7 @@ for event in Cut_Pion_Events_Random_Dummy_tree:
 
 # Fill histograms from SIMC ROOT File
 for event in Uncut_Pion_Events_SIMC_tree:
-    if HMS_Acceptance(event) and SHMS_Acceptance(event) and SIMC_MMpi_Cut(event) and Diamond_Cut(event):
+    if HMS_Acceptance(event) and SHMS_Acceptance(event) and SHMS_Aero_Cut(event) and SIMC_MMpi_Cut(event) and Diamond_Cut(event):
             H_hsdelta_pions_simc_cut_all.Fill(event.hsdelta, event.Weight)
             H_hsxptar_pions_simc_cut_all.Fill(event.hsxptar, event.Weight)
             H_hsyptar_pions_simc_cut_all.Fill(event.hsyptar, event.Weight)
@@ -1502,7 +1464,10 @@ for event in Uncut_Pion_Events_SIMC_tree:
             Q2_pions_simc_cut_all.Fill(event.Q2, event.Weight)
             epsilon_pions_simc_cut_all.Fill(event.epsilon, event.Weight)
             thetapq_pions_simc_cut_all.Fill(event.thetapq, event.Weight)
-            phipq_pions_simc_cut_all.Fill(event.phipq * (180 / math.pi) + 180, event.Weight)
+            phi_deg = event.phipq * (180 / math.pi)  # Convert φ to degrees
+            if phi_deg < 0:
+                phi_deg += 360  # Ensure φ is in [0, 360]
+            phipq_pions_simc_cut_all.Fill(phi_deg, event.Weight)
             pmiss_pions_simc_cut_all.Fill(event.Pm, event.Weight)
             pmiss_x_pions_simc_cut_all.Fill(event.pmper, event.Weight)
             pmiss_y_pions_simc_cut_all.Fill(event.pmoop, event.Weight)

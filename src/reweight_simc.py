@@ -218,7 +218,7 @@ for i in range(total_events):
 #    sigma_LT = float(((p9 / (Q2_evt)) + ((np.exp(-p10 * np.abs(abs_t_evt))) * (p11 / (p12 + np.abs(abs_t_evt))))) * np.sin(thetacm_rad_evt))
 #    sigma_LT = float(((p9 / (Q2_evt)) + ((np.exp(-p10 * np.abs(abs_t_evt))) * ((p11 * np.abs(abs_t_evt)**p12)))) * np.sin(thetacm_rad_evt))
 #    sigma_LT = float(((p9 / (Q2_evt)) + (p10 / (np.abs(abs_t_evt))) + ((np.exp(p11 / np.abs(abs_t_evt))) * (p12 / (np.abs(abs_t_evt))**2))) * np.sin(thetacm_rad_evt))
-    sigma_LT = float(((p9 / (Q2_evt)) + (p10 / (np.abs(abs_t_evt))) + ((np.exp(p11 * np.abs(abs_t_evt))) * (p12 / (np.abs(abs_t_evt))**2))) * np.sin(thetacm_rad_evt))
+    sigma_LT = float(((p9 / (Q2_evt)) + (p10 / (np.abs(abs_t_evt))) + ((np.exp(p11 / np.abs(abs_t_evt))) * (p12 / (np.abs(abs_t_evt))**2))) * np.sin(thetacm_rad_evt))
 
 #    sigma_TT = float(((p14 / (Q2_evt**2)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * np.sin(thetacm_rad_evt)**2))
 #    sigma_TT = float(((p14 / (Q2_evt**2)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * (np.exp(p15 * np.abs(abs_t_evt)))) * np.sin(thetacm_rad_evt)**2)

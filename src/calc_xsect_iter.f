@@ -314,6 +314,7 @@ c      real f_tm,g_W,tav,f_tav
       mpig=139.57018/1000.      !mpi
 
       phicm = phi
+c      if (phicm .lt. 0.0) phicm = phicm + 360.0   
       t_gev = abs(tm)      ! just to make sure it's positive
 
 *     Calculate model thetacm and epsilon at first.
@@ -421,7 +422,7 @@ c      siglt=((fitpar(9)/(Q2_gev)) + ((exp(-fitpar(10) * abs(t_gev))) *
 c     1     (fitpar(11)*abs(t_gev)**fitpar(12)))) * sin(thetacm)
 
       siglt=((fitpar(9)/(Q2_gev)) + (fitpar(10)/(abs(t_gev))) + 
-     1       ((exp(fitpar(11) * abs(t_gev))) * 
+     1       ((exp(fitpar(11) / abs(t_gev))) * 
      2       (fitpar(12)/(abs(t_gev))**2))) * sin(thetacm)
 
 c--------------------------------------------------------------------------
@@ -484,6 +485,7 @@ c      write(6,*)' LT ', sigLT,sigLT*wfactor,thetacm*180./pi
 c      write(6,*)' TT ', sigTT,sigTT*wfactor,thetacm*180./pi
 c      write(6,*)' sig ', sig,wfactor,eps_mod,phicm*180./pi
 c      
+   
       x_mod = sig
       th_mod=thetacm
       

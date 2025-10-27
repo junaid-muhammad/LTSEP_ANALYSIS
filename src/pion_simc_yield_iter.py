@@ -100,6 +100,8 @@ print("-"*40)
 # SIMC Cuts for Pions Selection
 HMS_Acceptance = lambda event: (event.hsdelta >= -8.0) & (event.hsdelta <= 8.0) & (event.hsxpfp >= -0.08) & (event.hsxpfp <= 0.08) & (event.hsypfp >= -0.045) & (event.hsypfp <= 0.045)
 SHMS_Acceptance = lambda event: (event.ssdelta >= -10.0) & (event.ssdelta <= 20.0) & (event.ssxpfp >= -0.06) & (event.ssxpfp <= 0.06) & (event.ssypfp >= -0.04) & (event.ssypfp <= 0.04)
+#SHMS_Aero_Cut = lambda event: (event.paero_x_det > -55.0) & (event.paero_x_det < 55.0) & (event.paero_y_det > -50) & (event.paero_y_det < 50) # Aerogel tray n = 1.030
+SHMS_Aero_Cut = lambda event: (event.paero_x_det > -45.0) & (event.paero_x_det < 45.0) & (event.paero_y_det > -30) & (event.paero_y_det < 30) # Aerogel tray n = 1.011
 
 # Cuts for Pions Selection - Change according to your data
 # Read the vertices from the CSV file
@@ -330,7 +332,7 @@ Uncut_Pion_Events_SIMC_tree = infile_SIMC.Get("h10")
 
 # Fill the histograms with the data
 for event in Uncut_Pion_Events_SIMC_tree:
-    if HMS_Acceptance(event) and SHMS_Acceptance(event) and SIMC_MMpi_Cut(event) and Diamond_Cut(event):
+    if HMS_Acceptance(event) and SHMS_Acceptance(event) and SHMS_Aero_Cut(event) and SIMC_MMpi_Cut(event) and Diamond_Cut(event):
         for tbin_cut, (tmin, tmax) in zip(tbin_cuts, zip(t_min_values, t_max_values)):
             if tbin_cut(event):
                 # Fill Q² and W (once per t-bin)
@@ -346,7 +348,9 @@ for event in Uncut_Pion_Events_SIMC_tree:
                             hist_set["simc"]["theta"].Fill(event.thetapq, event.Weight)
                         break  # Only fill Q2/W once for this t-bin
                 # Fill MMπ per t–φ bin
-                phi_deg = event.phipq * (180 / math.pi) + 180  # Convert φ to degrees in [0, 360]
+                phi_deg = event.phipq * (180 / math.pi) # Convert φ to degrees
+                if phi_deg < 0:
+                    phi_deg += 360  # Adjust to [0, 360]
                 for tmin_hist, tmax_hist, phimin_hist, phimax_hist, hist_set in data_histograms_by_tphi_cut:
                     if tmin == tmin_hist and tmax == tmax_hist and phimin_hist <= phi_deg <= phimax_hist:
                         hist_set["simc"]["MMpi"].Fill(event.missmass, event.Weight)
