@@ -15,13 +15,7 @@
 import uproot
 import uproot as up
 import numpy as np
-
-np.bool = bool
-np.float = float
-
-import root_numpy as rnp
 import pandas as pd
-import root_pandas as rpd
 import ROOT
 import scipy
 import scipy.integrate as integrate
@@ -38,6 +32,7 @@ import uncertainties as u
 from ctypes import c_double
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import curve_fit
+from copy import deepcopy
 
 ##################################################################################################################################################
 ROOT.gROOT.SetBatch(ROOT.kTRUE) # Set ROOT to batch mode explicitly, does not splash anything to screen
@@ -203,13 +198,14 @@ print(f"Saved Unsep cross-section plots to {UnSep_Xsection_pdf}")
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Full Rosenbluth function for fitting
-def rosenbluth_fit(phi, sigma_T, sigma_L, sigma_LT, sigma_TT, eps):
+def rosenbluth_fit(x, sigma_L, sigma_T, sigma_LT, sigma_TT):
+    phi, eps = x
     phi_rad = np.deg2rad(phi)  # Convert phi to radians for np.cos
     A = eps * sigma_L + sigma_T
     B = np.sqrt(2 * eps * (eps + 1)) * sigma_LT
     C = eps * sigma_TT
-    return (1 / (2 * np.pi)) * (A + B * np.cos(phi_rad) + C * np.cos(2 * phi_rad))
-    
+    return ((1 / (2 * np.pi)) * (A + B * np.cos(phi_rad) + C * np.cos(2 * phi_rad)))
+
 # Output file path
 RS_Sep_Xsection_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_Rosenbluth_Sep_xsection_iter%s_Distributions.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
@@ -271,20 +267,20 @@ for idx, t_central in enumerate(t_central_values[:5]):
         y_vals = df_combined["Xsection_real"].values 
         y_errs = df_combined["Xsection_real_error"].values
 
-        # Initial guess for [sigma_T, sigma_L, sigma_LT, sigma_TT]
-        p0 = [y_vals.mean(), y_vals.mean()/2, 0, 0]
+        # Initial guess for [sigma_L, sigma_T, sigma_LT, sigma_TT]
+        p0 = [y_vals.mean()/2, y_vals.mean(), 0, 0]
         try:
             popt, pcov = curve_fit(
                 rosenbluth_fit, x_vals, y_vals, sigma=y_errs, p0=p0, absolute_sigma=True, maxfev=50000
             )
-            sigma_T, sigma_L, sigma_LT, sigma_TT = popt
+            sigma_L, sigma_T, sigma_LT, sigma_TT = popt
             perr = np.sqrt(np.diag(pcov))
             # Store all fit results for plotting
             abs_t_cent_list.append(t_central)
             sigma_L_list.append(sigma_L)
-            sigma_L_err_list.append(perr[1])
+            sigma_L_err_list.append(perr[0])
             sigma_T_list.append(sigma_T)
-            sigma_T_err_list.append(perr[0])
+            sigma_T_err_list.append(perr[1])
             sigma_LT_list.append(sigma_LT)
             sigma_LT_err_list.append(perr[2])
             sigma_TT_list.append(sigma_TT)
@@ -297,16 +293,16 @@ for idx, t_central in enumerate(t_central_values[:5]):
                 (df_t_high["epsilon"].mean() if not df_t_high.empty else None, 'red', 'Fit (high ε)')
             ]:
                 if eps_val is not None:
-                    y_fit = rosenbluth_fit((phi_fit, np.full_like(phi_fit, eps_val)), sigma_T, sigma_L, sigma_LT, sigma_TT)
+                    y_fit = rosenbluth_fit((phi_fit, np.full_like(phi_fit, eps_val)), sigma_L, sigma_T, sigma_LT, sigma_TT)
                     ax.plot(phi_fit, y_fit, color=color, linestyle='--', label=label)
             # Print cross-section fit results and residuals
             print(f"t_central = {t_central:.3f}")
-            print(f"  sigma_L  = {sigma_L:.4f} ± {perr[1]:.4f}")
-            print(f"  sigma_T  = {sigma_T:.4f} ± {perr[0]:.4f}")
+            print(f"  sigma_L  = {sigma_L:.4f} ± {perr[0]:.4f}")
+            print(f"  sigma_T  = {sigma_T:.4f} ± {perr[1]:.4f}")
             print(f"  sigma_LT = {sigma_LT:.4f} ± {perr[2]:.4f}")
             print(f"  sigma_TT = {sigma_TT:.4f} ± {perr[3]:.4f}")
             # Calculate chi^2/ndof for the fit
-            y_fit_all = rosenbluth_fit((phi_vals, eps_vals), sigma_T, sigma_L, sigma_LT, sigma_TT)
+            y_fit_all = rosenbluth_fit((phi_vals, eps_vals), sigma_L, sigma_T, sigma_LT, sigma_TT)
             residuals = y_vals - y_fit_all
             chi2 = np.sum((residuals / y_errs) ** 2)
             ndof = len(y_vals) - len(popt)
@@ -318,8 +314,8 @@ for idx, t_central in enumerate(t_central_values[:5]):
 #                print(f"    phi={phi:.2f}  data={data:.4f}  fit={fit:.4f}  err={err:.4f}  resid={data-fit:.4f}")
             # Annotate fit results
             fit_text = (
-                r"$\sigma_L$ = %.3f $\pm$ %.3f" % (sigma_L, perr[1]) + "\n"
-                r"$\sigma_T$ = %.3f $\pm$ %.3f" % (sigma_T, perr[0]) + "\n"
+                r"$\sigma_L$ = %.3f $\pm$ %.3f" % (sigma_L, perr[0]) + "\n"
+                r"$\sigma_T$ = %.3f $\pm$ %.3f" % (sigma_T, perr[1]) + "\n"
                 r"$\sigma_{LT}$ = %.3f $\pm$ %.3f" % (sigma_LT, perr[2]) + "\n"
                 r"$\sigma_{TT}$ = %.3f $\pm$ %.3f" % (sigma_TT, perr[3])
             )
@@ -339,8 +335,8 @@ for idx, t_central in enumerate(t_central_values[:5]):
     ax.set_xlabel("phi (deg)", fontsize=16, fontweight='bold')
     ax.set_xlim(0, 360)
     ax.set_ylabel(r"$d^2\sigma/dt\,d\phi$ ($\mu$b/GeV$^2$)", fontsize=16, fontweight='bold')
-    ax.set_ylim(0, max(df_t_low["Xsection_real"].max(), df_t_high["Xsection_real"].max()) * 1.1)
-#    ax.set_ylim(-0.10, 0.10)
+    ymax = max(df_t_low["Xsection_real"].max(), df_t_high["Xsection_real"].max())
+    ax.set_ylim(-0.1 * ymax, 1.2 * ymax)
     ax.legend(fontsize=12)
 plt.tight_layout()
 
@@ -350,13 +346,13 @@ plt.close(fig_2)
 
 print(f"Saved Rosenbluth Sep cross-section plots to {RS_Sep_Xsection_pdf}")
 
-
 # --- Save separated cross-sections (sigma_L, sigma_T, sigma_LT, sigma_TT) vs t, theta_cm, Q2 to CSV ---
 sep_xsection_csv = "%s/%s_pion_physics_sep_xsect_iter%s.csv" % (XSECT_OUTPATH, PHY_SETTING, ITERATION)
 sep_xsection_df = pd.DataFrame({
     't_central': abs_t_cent_list,
     'theta_cm': [xsect_loweps_df[xsect_loweps_df['t_central'] == t]['theta_cm'].iloc[0] if not xsect_loweps_df[xsect_loweps_df['t_central'] == t].empty else (xsect_higheps_df[xsect_higheps_df['t_central'] == t]['theta_cm'].iloc[0] if not xsect_higheps_df[xsect_higheps_df['t_central'] == t].empty else None) for t in abs_t_cent_list],
     'Q2': [xsect_loweps_df[xsect_loweps_df['t_central'] == t]['Q2'].iloc[0] if not xsect_loweps_df[xsect_loweps_df['t_central'] == t].empty else (xsect_higheps_df[xsect_higheps_df['t_central'] == t]['Q2'].iloc[0] if not xsect_higheps_df[xsect_higheps_df['t_central'] == t].empty else None) for t in abs_t_cent_list],
+    'W': [xsect_loweps_df[xsect_loweps_df['t_central'] == t]['W'].iloc[0] if not xsect_loweps_df[xsect_loweps_df['t_central'] == t].empty else (xsect_higheps_df[xsect_higheps_df['t_central'] == t]['W'].iloc[0] if not xsect_higheps_df[xsect_higheps_df['t_central'] == t].empty else None) for t in abs_t_cent_list],
     'sigma_L': sigma_L_list,
     'sigma_L_err': sigma_L_err_list,
     'sigma_T': sigma_T_list,
@@ -371,28 +367,13 @@ print(f"Saved separated cross-sections to {sep_xsection_csv}")
 
 #============================================================================================================================================
 
-# --- fit functions for cross sections ---
-def sigma_T_func(Q2_var, p1, p2):
-    return (p1 / Q2_var) + (p2 / (Q2_var**2))
-# p3 and p4 are unassigned parameters in the code so far.
-
-def sigma_L_func(abs_t_cent_var, Q2_var, p5, p6, p7, p8, p9):
-    return (p5 * Q2_var * np.exp((p6 - p7 * np.log(Q2_var)) * np.abs(abs_t_cent_var))) / (1 + p8 * Q2_var + p9 * (Q2_var**2))**2
-
-def sigma_LT_func(abs_t_cent_var, Q2_var, p10, p11, p12, p13, theta_cm_var):
-    return (np.exp(p10 + (p11 * np.abs(abs_t_cent_var) / np.sqrt(Q2_var))) + p12 + (p13 / (Q2_var**2))) * np.sin(theta_cm_var)
-
-def sigma_TT_func(abs_t_cent_var, Q2_var, p14, m_pi, theta_cm_var):
-    return ((p14 / (Q2_var**2)) * (np.abs(abs_t_cent_var) / (np.abs(abs_t_cent_var) + m_pi**2)**2) * np.sin(theta_cm_var)**2)
-# p15 and p16 are unassigned parameters in the code so far.
-
 # Extract Q2 value from PHY_SETTING argument
 Q2par = 0
 Q2str = PHY_SETTING.split('_')[0]
 if Q2str.startswith('Q'):
     Q2par = Q2str[1:].replace('p', '')  # '3p85' -> '385' (string, no decimal)
 
-# Read fit parameters from file and assign to variables (first column only)
+# Read fit parameters from file (first column only)
 param_file = "%s/iter%s/par.pl_%s" % (XSECT_PARAMPATH, ITERATION, Q2par)
 params = []
 with open(param_file, 'r') as f:
@@ -401,102 +382,197 @@ with open(param_file, 'r') as f:
         if len(parts) >= 1:
             params.append(float(parts[0]))
 
-# Assign parameters to variables (first value of each row)
-p1 = params[0]  #1
-p2 = params[1]  #2
-p3 = params[2]  #3 - unassigned
-p4 = params[3]  #4 - unassigned
-p5 = params[4]  #5
-p6 = params[5]  #6
-p7 = params[6]  #7
-p8 = params[7]  #8
-p9 = params[8]  #9
-p10 = params[9]  #10
-p11 = params[10] #11
-p12 = params[11] #12
-p13 = params[12] #13
-p14 = params[13] #14
-p15 = params[14] #15 - unassigned
-p16 = params[15] #16 - unassigned
-print ("Fit parameters loaded from file:")
+# Create parameter dictionary for cleaner access
+p_vals = {f'p{i+1}': params[i] for i in range(len(params))}
+
+# Assign to individual variables (16 parameters expected)
+p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = [p_vals.get(f'p{i}', 0.0) for i in range(1, 17)]
+#p10, p11, p12, p13, p14 = -100000, 0, 0, 0, 0
+#p10 = -9
+print("Fit parameters loaded from file:")
 print(f"p1={p1}, p2={p2}, p3={p3}, p4={p4}, p5={p5}, p6={p6}, p7={p7}, p8={p8}, p9={p9}, p10={p10}, p11={p11}, p12={p12}, p13={p13}, p14={p14}, p15={p15}, p16={p16}")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+print("==========ROOT fit section==========")
 # ROOT version of fitting functional form to data
 LT_Sep_Xsection_root_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_LT_Sep_xsection_iter%s_Distributions_ROOT.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
 
 # Prepare arrays for -t, values, and errors (from fit results lists)
-Q2_var = sep_xsection_df['Q2'].values
-theta_cm_var = np.deg2rad(sep_xsection_df['theta_cm'].values)
+t_vals = sep_xsection_df['t_central'].values
+w_vals = sep_xsection_df['W'].values
+Q2_vals = np.array([sep_xsection_df[sep_xsection_df["t_central"] == var_tcm]["Q2"].iloc[0] for var_tcm in t_vals])
+theta_vals = np.array([sep_xsection_df[sep_xsection_df["t_central"] == var_tcm]["theta_cm"].iloc[0] for var_tcm in t_vals])
+m_p = 0.93827231
 m_pi = 0.13957018
-abs_t_cent_var = np.array(abs_t_cent_list)
-sigma_L_var = np.array(sigma_L_list)
-sigma_L_err_var = np.array(sigma_L_err_list)
-sigma_T_var = np.array(sigma_T_list)
-sigma_T_err_var = np.array(sigma_T_err_list)
-sigma_LT_var = np.array(sigma_LT_list)
-sigma_LT_err_var = np.array(sigma_LT_err_list)
-sigma_TT_var = np.array(sigma_TT_list)
-sigma_TT_err_var = np.array(sigma_TT_err_list)
-
+abs_t_cent_var = t_vals.astype(np.float64)
+Q2_var = Q2_vals.astype(np.float64)
+W_var = w_vals.astype(np.float64)
+theta_cm_var = np.deg2rad(theta_vals.astype(np.float64))
+sigma_T_var = sep_xsection_df['sigma_T'].values.astype(np.float64)
+sigma_T_err = sep_xsection_df['sigma_T_err'].values.astype(np.float64)
+sigma_L_var = sep_xsection_df['sigma_L'].values.astype(np.float64)
+sigma_L_err = sep_xsection_df['sigma_L_err'].values.astype(np.float64)
+sigma_LT_var = sep_xsection_df['sigma_LT'].values.astype(np.float64)
+sigma_LT_err = sep_xsection_df['sigma_LT_err'].values.astype(np.float64)
+sigma_TT_var = sep_xsection_df['sigma_TT'].values.astype(np.float64)
+sigma_TT_err = sep_xsection_df['sigma_TT_err'].values.astype(np.float64)
 npoints = len(abs_t_cent_var)
-zeros_arr = np.zeros(npoints)
+zeros_arr_f64 = np.zeros(npoints, dtype=np.float64)
 
-# Create TGraphErrors objects with error bars (using pre-converted arrays)
-gr_T = ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_T_var, zeros_arr, sigma_T_err_var)
-gr_L = ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_L_var, zeros_arr, sigma_L_err_var)
-gr_LT = ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_LT_var, zeros_arr, sigma_LT_err_var)
-gr_TT = ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_TT_var, zeros_arr, sigma_TT_err_var)
+graphs = {
+    'T': ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_T_var, zeros_arr_f64, sigma_T_err),
+    'L': ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_L_var, zeros_arr_f64, sigma_L_err),
+    'LT': ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_LT_var, zeros_arr_f64, sigma_LT_err),
+    'TT': ROOT.TGraphErrors(npoints, abs_t_cent_var, sigma_TT_var, zeros_arr_f64, sigma_TT_err)
+}
+gr_T = graphs['T']
+gr_L = graphs['L']
+gr_LT = graphs['LT']
+gr_TT = graphs['TT']
+
+# --- Fit control flags: Set to True to fit, False to fix ---
+FIT_SIGMA_L = True   # Fit σL parameters (p5, p6, p7, p8, p9)  
+FIT_SIGMA_T = True  # Fit σT parameters (p1, p2)
+FIT_SIGMA_LT = True  # Fit σLT parameters (p10, p11, p12, p13)
+FIT_SIGMA_TT = True  # Fit σTT parameters (p14)
+
+print("\nFit control settings:")
+print(f"FIT_SIGMA_T  = {FIT_SIGMA_T}")
+print(f"FIT_SIGMA_L  = {FIT_SIGMA_L}")
+print(f"FIT_SIGMA_LT = {FIT_SIGMA_LT}")
+print(f"FIT_SIGMA_TT = {FIT_SIGMA_TT}")
 
 # Fit T vs -t
 def sigma_T_root_func(x, par):
-    var_f = x[0]
-    Q2 = np.interp(var_f, abs_t_cent_var, Q2_var)
-    return (par[0] / Q2) + (par[1] / (Q2**2))
-sigma_T_root = ROOT.TF1("sigma_T_func", sigma_T_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 2)
-sigma_T_root.SetParameters(p1, p2)  # Set par[0] = p1, par[1] = p2
+    var_tcm = x[0]
+    Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
+    W = np.interp(var_tcm, abs_t_cent_var, W_var)
+    W_factor = 1.0 / (W**2 - m_p**2)**2
+    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm)))))
+
+sigma_T_root = ROOT.TF1("sigma_T_func", sigma_T_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 3)
+sigma_T_root.SetParameters(p1, p2, p3)  # Set par[0] = p1, par[1] = p2, par[2] = p3
+# Control parameter fixing for σT
+if not FIT_SIGMA_T:
+    sigma_T_root.FixParameter(0, p1)  # Fix p1
+    sigma_T_root.FixParameter(1, p2)  # Fix p2
+    sigma_T_root.FixParameter(2, p3)  # Fix p3
+    print("σ_T parameters FIXED")
+else:
+#    sigma_T_root.FixParameter(0, p1)  # Fix p1
+#    sigma_T_root.FixParameter(1, p2)  # Fix p2
+#    sigma_T_root.FixParameter(2, p3)  # Fix p3
+    print("σ_T parameters will be FITTED")
 sigma_T_root.SetLineColor(ROOT.kRed)
 sigma_T_root.SetLineStyle(2)  # Dashed line
-fit_result_T = gr_T.Fit(sigma_T_root, "RS")  # S option for better statistics
+fit_result_T = gr_T.Fit(sigma_T_root, "RMES")  # S option for better statistics
 print(f"σ_T fit status: {fit_result_T.Status()}, Chi2/NDF: {fit_result_T.Chi2():.3f}/{fit_result_T.Ndf()}")
+if fit_result_T.Ndf() > 0:
+    print(f"σ_T reduced chi2: {fit_result_T.Chi2()/fit_result_T.Ndf():.3f}")
 
 # Fit L vs -t
 def sigma_L_root_func(x, par):
-    var_f = x[0]
-    Q2 = np.interp(var_f, abs_t_cent_var, Q2_var)
-    return (par[0] * Q2 * np.exp((par[1] - par[2] * np.log(Q2)) * np.abs(var_f))) / (1 + par[3] * Q2 + par[4] * (Q2**2))**2
+    var_tcm = x[0]
+    Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
+    W = np.interp(var_tcm, abs_t_cent_var, W_var)
+    W_factor = 1.0 / (W**2 - m_p**2)**2
+    return (W_factor * ((par[0] + par[1] / Q2) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
+
 sigma_L_root = ROOT.TF1("sigma_L_func", sigma_L_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 5)
-sigma_L_root.SetParameters(p5, p6, p7, p8, p9)  # Set par[0] = p5, par[1] = p6, par[2] = p7, par[3] = p8, par[4] = p9
+sigma_L_root.SetParameters(p4, p5, p6, p7, p8)  # All parameters are fitted
+# Control parameter fixing for σL
+if not FIT_SIGMA_L:
+    sigma_L_root.FixParameter(0, p4)  # Fix p5
+    sigma_L_root.FixParameter(1, p5)  # Fix p6
+    sigma_L_root.FixParameter(2, p6)  # Fix p7
+    sigma_L_root.FixParameter(3, p7)  # Fix p8
+    sigma_L_root.FixParameter(4, p8)  # Fix p9
+    print("σ_L parameters FIXED")
+else:
+    # Set reasonable parameter limits for σL
+#    sigma_L_root.SetParLimits(0, -1000.0, 1000.0)  # p5: reasonable range   
+#    sigma_L_root.SetParLimits(1, -1000.0, 1000.0)  # p6: reasonable range
+#    sigma_L_root.FixParameter(0, p4)  # Fix p4
+#    sigma_L_root.FixParameter(1, p5)  # Fix p5
+#    sigma_L_root.FixParameter(2, p6)  # Fix p6
+    sigma_L_root.FixParameter(3, p7)  # Fix p7
+    sigma_L_root.FixParameter(4, p8)  # Fix p8
+    print("σ_L parameters will be FITTED")
 sigma_L_root.SetLineColor(ROOT.kRed)
 sigma_L_root.SetLineStyle(2)  # Dashed line
-fit_result_L = gr_L.Fit(sigma_L_root, "RS")  # S option for better statistics
+fit_result_L = gr_L.Fit(sigma_L_root, "RMES")  # S option for better statistics
 print(f"σ_L fit status: {fit_result_L.Status()}, Chi2/NDF: {fit_result_L.Chi2():.3f}/{fit_result_L.Ndf()}")
+if fit_result_L.Ndf() > 0:
+    print(f"σ_L reduced chi2: {fit_result_L.Chi2()/fit_result_L.Ndf():.3f}")
 
 # Fit LT vs -t
 def sigma_LT_root_func(x, par):
-    var_f = x[0]
-    Q2 = np.interp(var_f, abs_t_cent_var, Q2_var)
-    theta = np.interp(var_f, abs_t_cent_var, theta_cm_var)
-    return (np.exp(par[0] + (par[1] * np.abs(var_f) / np.sqrt(Q2))) + par[2] + (par[3] / (Q2**2))) * np.sin(theta)
+    var_tcm = x[0]
+    Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
+    theta = np.interp(var_tcm, abs_t_cent_var, theta_cm_var)
+    W = np.interp(var_tcm, abs_t_cent_var, W_var)
+    W_factor = 1.0 / (W**2 - m_p**2)**2
+    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] / np.abs(var_tcm))) * (par[2] / (np.abs(var_tcm))**par[3])) * np.sin(theta)))
+
 sigma_LT_root = ROOT.TF1("sigma_LT_func", sigma_LT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
-sigma_LT_root.SetParameters(p10, p11, p12, p13)  # Set par[0] = p10, par[1] = p11, par[2] = p12, par[3] = p13
+p10 = -4.8
+
+sigma_LT_root.SetParameters(p9, p10, p11, p12)  # All parameters are fitted
+# Control parameter fixing for σLT
+if not FIT_SIGMA_LT:
+    sigma_LT_root.FixParameter(0, p9)  # Fix p9
+    sigma_LT_root.FixParameter(1, p10)  # Fix p10
+    sigma_LT_root.FixParameter(2, p11)  # Fix p11
+    sigma_LT_root.FixParameter(3, p12)  # Fix p12
+    print("σ_LT parameters FIXED")
+else:
+#    sigma_LT_root.FixParameter(0, p9)  # Fix p9
+    sigma_LT_root.FixParameter(1, p10)  # Fix p10
+#    sigma_LT_root.FixParameter(2, p11)  # Fix p11
+#    sigma_LT_root.FixParameter(3, p12)  # Fix p12
+    print("σ_LT parameters will be FITTED")
 sigma_LT_root.SetLineColor(ROOT.kRed)
 sigma_LT_root.SetLineStyle(2)  # Dashed line
-fit_result_LT = gr_LT.Fit(sigma_LT_root, "RS")  # S option for better statistics
+fit_result_LT = gr_LT.Fit(sigma_LT_root, "RMES")  # S option for better statistics
 print(f"σ_LT fit status: {fit_result_LT.Status()}, Chi2/NDF: {fit_result_LT.Chi2():.3f}/{fit_result_LT.Ndf()}")
+if fit_result_LT.Ndf() > 0:
+    print(f"σ_LT reduced chi2: {fit_result_LT.Chi2()/fit_result_LT.Ndf():.3f}")
 
 # Fit TT vs -t
 def sigma_TT_root_func(x, par):
-    var_f = x[0]
-    Q2 = np.interp(var_f, abs_t_cent_var, Q2_var)
-    theta = np.interp(var_f, abs_t_cent_var, theta_cm_var)
-    return ((par[0] / (Q2**2)) * (np.abs(var_f) / (np.abs(var_f) + m_pi**2)**2) * np.sin(theta)**2)
-sigma_TT_root = ROOT.TF1("sigma_TT_func", sigma_TT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 1)
-sigma_TT_root.SetParameter(0, p14)  # Set par[0] = p14
+    var_tcm = x[0]
+    Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
+    theta = np.interp(var_tcm, abs_t_cent_var, theta_cm_var)
+    W = np.interp(var_tcm, abs_t_cent_var, W_var)
+    W_factor = 1.0 / (W**2 - m_p**2)**2
+    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (np.abs(var_tcm))**par[3])) * np.sin(theta)**2))
+
+sigma_TT_root = ROOT.TF1("sigma_TT_func", sigma_TT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
+p14 = 0
+
+sigma_TT_root.SetParameters(p13, p14, p15, p16)  # All parameters are fitted
+# Control parameter fixing for σTT
+if not FIT_SIGMA_TT:
+    sigma_TT_root.FixParameter(0, p13)  # Fix p13
+    sigma_TT_root.FixParameter(1, p14)  # Fix p14
+    sigma_TT_root.FixParameter(2, p15)  # Fix p15
+    sigma_TT_root.FixParameter(3, p16)  # Fix p16
+    print("σ_TT parameters FIXED")
+else:
+#    sigma_TT_root.FixParameter(0, p13)  # Fix p13
+    sigma_TT_root.FixParameter(1, p14)  # Fix p14
+#    sigma_TT_root.FixParameter(2, p15)  # Fix p15
+    sigma_TT_root.FixParameter(3, p16)  # Fix p16
+    print("σ_TT parameters will be FITTED")
 sigma_TT_root.SetLineColor(ROOT.kRed)
 sigma_TT_root.SetLineStyle(2)  # Dashed line
-fit_result_TT = gr_TT.Fit(sigma_TT_root, "RS")  # S option for better statistics
+fit_result_TT = gr_TT.Fit(sigma_TT_root, "RMES")  # S option for better statistics
 print(f"σ_TT fit status: {fit_result_TT.Status()}, Chi2/NDF: {fit_result_TT.Chi2():.3f}/{fit_result_TT.Ndf()}")
+if fit_result_TT.Ndf() > 0:
+    print(f"σ_TT reduced chi2: {fit_result_TT.Chi2()/fit_result_TT.Ndf():.3f}")
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Print fit results
 LT_fit_rt = ROOT.TCanvas("LT_fit_rt", "Fitted Cross Sections vs -t", 1400, 900)
@@ -561,30 +637,100 @@ gr_TT.GetXaxis().CenterTitle()
 gr_TT.GetYaxis().CenterTitle()
 ROOT.gPad.SetTitle("")
 sigma_TT_root.Draw("SAME")
+LT_fit_rt.Print(LT_Sep_Xsection_root_pdf + '(')
 
-LT_fit_rt.Update()
-LT_fit_rt.SaveAs(LT_Sep_Xsection_root_pdf)
+# --- Add a new page with 4 canvases, extended t range and fit lines ---
+x_range = 0.07
+extended_t_min = min(abs_t_cent_var) - x_range
+extended_t_max = max(abs_t_cent_var) + x_range
+y_min_L = -1
+y_max_L = 1
+y_min_T = 0
+y_max_T = 1
+y_min_LT = -0.5
+y_max_LT = 0.5
+y_min_TT = -0.5
+y_max_TT = 0.5
+
+canvas_ext = ROOT.TCanvas("canvas_ext", "Extended Range Cross Sections vs -t", 1400, 900)
+canvas_ext.Divide(2,2)
+
+# sigma_T extended plot (top right - position 2)
+canvas_ext.cd(2)
+gr_T.Draw("AP")
+gr_T.GetXaxis().SetLimits(extended_t_min, extended_t_max)
+gr_T.GetYaxis().SetRangeUser(y_min_T, y_max_T)
+sigma_T_root.SetLineColor(ROOT.kBlue)
+sigma_T_root.SetLineStyle(2)
+ext_sigma_T = ROOT.TF1("ext_sigma_T_func", sigma_T_root_func, extended_t_min, extended_t_max, 3)
+ext_sigma_T.SetParameters(*[sigma_T_root.GetParameter(i) for i in range(3)])
+ext_sigma_T.SetLineColor(ROOT.kBlue)
+ext_sigma_T.SetLineStyle(1)
+ext_sigma_T.Draw("SAME")
+
+# sigma_L extended plot (top left - position 1)
+canvas_ext.cd(1)
+gr_L.Draw("AP")
+gr_L.GetXaxis().SetLimits(extended_t_min, extended_t_max)
+gr_L.GetYaxis().SetRangeUser(y_min_L, y_max_L)
+sigma_L_root.SetLineColor(ROOT.kBlue)
+sigma_L_root.SetLineStyle(2)
+ext_sigma_L = ROOT.TF1("ext_sigma_L_func", sigma_L_root_func, extended_t_min, extended_t_max, 5)
+ext_sigma_L.SetParameters(*[sigma_L_root.GetParameter(i) for i in range(5)])
+ext_sigma_L.SetLineColor(ROOT.kBlue)
+ext_sigma_L.SetLineStyle(1)
+ext_sigma_L.Draw("SAME")
+
+# sigma_LT extended plot (bottom left - position 3)
+canvas_ext.cd(3)
+gr_LT.Draw("AP")
+gr_LT.GetXaxis().SetLimits(extended_t_min, extended_t_max)
+gr_LT.GetYaxis().SetRangeUser(y_min_LT, y_max_LT)
+sigma_LT_root.SetLineColor(ROOT.kBlue)
+sigma_LT_root.SetLineStyle(2)
+ext_sigma_LT = ROOT.TF1("ext_sigma_LT_func", sigma_LT_root_func, extended_t_min, extended_t_max, 4)
+ext_sigma_LT.SetParameters(*[sigma_LT_root.GetParameter(i) for i in range(4)])
+#ext_sigma_LT.SetParameter(0, sigma_LT_root.GetParameter(0))
+ext_sigma_LT.SetLineColor(ROOT.kBlue)
+ext_sigma_LT.SetLineStyle(1)
+ext_sigma_LT.Draw("SAME")
+
+# sigma_TT extended plot (bottom right - position 4)
+canvas_ext.cd(4)
+gr_TT.Draw("AP")
+gr_TT.GetXaxis().SetLimits(extended_t_min, extended_t_max)
+gr_TT.GetYaxis().SetRangeUser(y_min_TT, y_max_TT)
+sigma_TT_root.SetLineColor(ROOT.kBlue)
+sigma_TT_root.SetLineStyle(2)
+ext_sigma_TT = ROOT.TF1("ext_sigma_TT_func", sigma_TT_root_func, extended_t_min, extended_t_max, 4)
+ext_sigma_TT.SetParameters(*[sigma_TT_root.GetParameter(i) for i in range(4)])
+ext_sigma_TT.SetLineColor(ROOT.kBlue)
+ext_sigma_TT.SetLineStyle(1)
+ext_sigma_TT.Draw("SAME")
+canvas_ext.Print(LT_Sep_Xsection_root_pdf + ')')
 print(f"Saved ROOT fits to {LT_Sep_Xsection_root_pdf}")
 
-# Collect all parameters and errors in order
+# Collect all parameters and errors in order, reflecting which are fitted/fixed
 params = [
-    (sigma_T_root.GetParameter(0), sigma_T_root.GetParError(0)),   # p1
-    (sigma_T_root.GetParameter(1), sigma_T_root.GetParError(1)),   # p2
-    # p3 and p4 are not fitted in this code, so keep original values
-    (p3, 0.0),               # p3
-    (p4, 0.0),               # p4
-    (sigma_L_root.GetParameter(0), sigma_L_root.GetParError(0)),   # p5
-    (sigma_L_root.GetParameter(1), sigma_L_root.GetParError(1)),   # p6
-    (sigma_L_root.GetParameter(2), sigma_L_root.GetParError(2)),   # p7
-    (sigma_L_root.GetParameter(3), sigma_L_root.GetParError(3)),   # p8
-    (sigma_L_root.GetParameter(4), sigma_L_root.GetParError(4)),   # p9
-    (sigma_LT_root.GetParameter(0), sigma_LT_root.GetParError(0)), # p10
-    (sigma_LT_root.GetParameter(1), sigma_LT_root.GetParError(1)), # p11
-    (sigma_LT_root.GetParameter(2), sigma_LT_root.GetParError(2)), # p12
-    (sigma_LT_root.GetParameter(3), sigma_LT_root.GetParError(3)), # p13
-    (sigma_TT_root.GetParameter(0), sigma_TT_root.GetParError(0)), # p14
-    (p15, 0.0),              # p15
-    (p16, 0.0)               # p16
+    (sigma_T_root.GetParameter(0), sigma_T_root.GetParError(0), 'fitted' if FIT_SIGMA_T else 'fixed'),   # p1
+    (sigma_T_root.GetParameter(1), sigma_T_root.GetParError(1), 'fitted' if FIT_SIGMA_T else 'fixed'),   # p2
+    (sigma_T_root.GetParameter(2), sigma_T_root.GetParError(2), 'fitted' if FIT_SIGMA_T else 'fixed'),   # p3
+
+    (sigma_L_root.GetParameter(0), sigma_L_root.GetParError(0), 'fitted' if FIT_SIGMA_L else 'fixed'),   # p4
+    (sigma_L_root.GetParameter(1), sigma_L_root.GetParError(1), 'fitted' if FIT_SIGMA_L else 'fixed'),   # p5
+    (sigma_L_root.GetParameter(2), sigma_L_root.GetParError(2), 'fitted' if FIT_SIGMA_L else 'fixed'),   # p6
+    (sigma_L_root.GetParameter(3), sigma_L_root.GetParError(3), 'fitted' if FIT_SIGMA_L else 'fixed'),   # p7
+    (sigma_L_root.GetParameter(4), sigma_L_root.GetParError(4), 'fitted' if FIT_SIGMA_L else 'fixed'),   # p8
+
+    (sigma_LT_root.GetParameter(0), sigma_LT_root.GetParError(0), 'fitted' if FIT_SIGMA_LT else 'fixed'), # p9
+    (sigma_LT_root.GetParameter(1), sigma_LT_root.GetParError(1), 'fitted' if FIT_SIGMA_LT else 'fixed'), # p10
+    (sigma_LT_root.GetParameter(2), sigma_LT_root.GetParError(2), 'fitted' if FIT_SIGMA_LT else 'fixed'), # p11
+    (sigma_LT_root.GetParameter(3), sigma_LT_root.GetParError(3), 'fitted' if FIT_SIGMA_LT else 'fixed'), # p12
+
+    (sigma_TT_root.GetParameter(0), sigma_TT_root.GetParError(0), 'fitted' if FIT_SIGMA_TT else 'fixed'), # p13
+    (sigma_TT_root.GetParameter(1), sigma_TT_root.GetParError(1), 'fitted' if FIT_SIGMA_TT else 'fixed'), # p14
+    (sigma_TT_root.GetParameter(2), sigma_TT_root.GetParError(2), 'fitted' if FIT_SIGMA_TT else 'fixed'),  # p15
+    (sigma_TT_root.GetParameter(3), sigma_TT_root.GetParError(3), 'fitted' if FIT_SIGMA_TT else 'fixed')  # p16
 ]
 
 # Check for any problematic fits and warn user
@@ -598,132 +744,17 @@ if fit_result_LT.Status() != 0:
 if fit_result_TT.Status() != 0:
     fit_warnings.append(f"σ_TT fit status: {fit_result_TT.Status()}")
 
-print("Fitted parameters and uncertainties:")
-for i, (val, err) in enumerate(params, start=1):
-    print(f"p{i} = {val:.6f} ± {err:.6f}")
+print("Fitted and fixed parameters:")
+for i, (val, err, status) in enumerate(params, start=1):
+    print(f"p{i} = {val:.6f} ± {err:.6f} [{status}]")
 
 # --- Save new fit parameters and errors to a text file in alphabetical order ---
 param_names = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16']
-param_values = [
-    sigma_T_root.GetParameter(0), sigma_T_root.GetParameter(1),  # p1, p2
-    p3, p4,  # Use loaded values for p3, p4 (not fitted)
-    sigma_L_root.GetParameter(0), sigma_L_root.GetParameter(1), sigma_L_root.GetParameter(2), sigma_L_root.GetParameter(3), sigma_L_root.GetParameter(4),  # p5, p6, p7, p8, p9
-    sigma_LT_root.GetParameter(0), sigma_LT_root.GetParameter(1), sigma_LT_root.GetParameter(2), sigma_LT_root.GetParameter(3),  # p10, p11, p12, p13
-    sigma_TT_root.GetParameter(0),  # p14
-    p15, p16   # Use loaded values for p15, p16 (not fitted)
-]
-param_errors = [
-    sigma_T_root.GetParError(0), sigma_T_root.GetParError(1),  # p1, p2 errors
-    0, 0,  # p3, p4 not fitted
-    sigma_L_root.GetParError(0), sigma_L_root.GetParError(1), sigma_L_root.GetParError(2), sigma_L_root.GetParError(3), sigma_L_root.GetParError(4),  # p5, p6, p7, p8, p9 errors
-    sigma_LT_root.GetParError(0), sigma_LT_root.GetParError(1), sigma_LT_root.GetParError(2), sigma_LT_root.GetParError(3),  # p10, p11, p12, p13 errors
-    sigma_TT_root.GetParError(0),  # p14 error
-    0, 0   # p15, p16 not fitted
-]
-# Write to file in numerical order
 NEW_ITERATION = str(int(ITERATION) + 1).zfill(2)
 param_outfile = f"{XSECT_OUTPATH}/new_fitparams_iter{NEW_ITERATION}_par.pl_{Q2par}"
 with open(param_outfile, 'w') as f:
-    for idx, (name, val, err) in enumerate(zip(param_names, param_values, param_errors), 1):
-        f.write(f"{val:12.8g}{' '*7}{err:12.4g}{' '*5}{idx}\n")
+    for idx, (val, err, status) in enumerate(params, 1):
+        f.write(f"{val:12.8g} {err:12.4g} {idx:3d}\n")
 print(f"Saved new fit parameters to {param_outfile}")
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-# Python version of fitting functional form to data
-LT_Sep_Xsection_py_pdf = "%s/LTSEP_ANALYSIS/src/plots/%s_ProdCoin_Pion_Analysis_LT_Sep_xsection_iter%s_Distributions_py.pdf" % (REPLAYPATH, PHY_SETTING, ITERATION)
-
-# sigma_L fit
-p0_L = [p5, p6, p7, p8, p9]  # Fit all parameters
-def sigma_L_fitfunc(x_tuple, p5, p6, p7, p8, p9):
-    t, Q2 = x_tuple
-    return sigma_L_func(t, Q2, p5, p6, p7, p8, p9)
-x_input_L = np.vstack((abs_t_cent_var, Q2_var))
-popt_L, pcov_L = curve_fit(
-    sigma_L_fitfunc, x_input_L, sigma_L, sigma=sigma_L_err, p0=p0_L,
-    bounds=(-1e8, 1e8), absolute_sigma=True, maxfev=100000
-)
-
-# sigma_T fit
-p0_T = [p1, p2]
-def sigma_T_fitfunc(Q2, p1, p2):
-    return sigma_T_func(Q2, p1, p2)
-popt_T, pcov_T = curve_fit(
-    sigma_T_fitfunc, Q2_var, sigma_T, sigma=sigma_T_err, p0=p0_T,
-    absolute_sigma=True, maxfev=100000
-)
-
-# sigma_LT fit
-p0_LT = [p10, p11, p12, p13]
-def sigma_LT_fitfunc(x_tuple, p10, p11, p12, p13):
-    t, Q2, theta_cm = x_tuple
-    return sigma_LT_func(t, Q2, p10, p11, p12, p13, theta_cm)
-x_input_LT = np.vstack((abs_t_cent_var, Q2_var, theta_cm_var))
-popt_LT, pcov_LT = curve_fit(
-    sigma_LT_fitfunc, x_input_LT, sigma_LT, sigma=sigma_LT_err, p0=p0_LT,
-    absolute_sigma=True, maxfev=100000
-)
-
-# sigma_TT fit
-p0_TT = [p14]
-def sigma_TT_fitfunc(x_tuple, p14):
-    t, Q2, theta_cm = x_tuple
-    return sigma_TT_func(t, Q2, p14, m_pi, theta_cm)
-x_input_TT = np.vstack((abs_t_cent_var, Q2_var, theta_cm_var))
-popt_TT, pcov_TT = curve_fit(
-    sigma_TT_fitfunc, x_input_TT, sigma_TT, sigma=sigma_TT_err, p0=p0_TT,
-    absolute_sigma=True, maxfev=100000
-)
-
-# --- zPlot all four sigma's vs t ---
-fig_3, axs_3 = plt.subplots(2, 2, figsize=(14, 10))
-axs_3 = axs_3.flatten()
-
-# σ_L vs t
-axs_3[0].errorbar(abs_t_cent_var, sigma_L, yerr=sigma_L_err, fmt='o', color='blue', label='Data')
-axs_3[0].set_title(r'$\sigma_L$ vs $t$', fontsize=16, fontweight='bold')
-axs_3[0].set_xlabel(r'$t$ (GeV$^2$)', fontsize=14)
-axs_3[0].set_ylabel(r'$\sigma_L$ ($\mu$b/GeV$^2$)', fontsize=14)
-# Functional fit for sigma_L
-sigma_L_fit = sigma_L_func(abs_t_cent_var, Q2_var, *popt_L)
-axs_3[0].plot(abs_t_cent_var, sigma_L_fit, 'r--', label='Fit')
-axs_3[0].legend()
-
-# σ_T vs t
-axs_3[1].errorbar(abs_t_cent_var, sigma_T, yerr=sigma_T_err, fmt='s', color='red', label='Data')
-axs_3[1].set_title(r'$\sigma_T$ vs $t$', fontsize=16, fontweight='bold')
-axs_3[1].set_xlabel(r'$t$ (GeV$^2$)', fontsize=14)
-axs_3[1].set_ylabel(r'$\sigma_T$ ($\mu$b/GeV$^2$)', fontsize=14)
-# Functional fit for sigma_T
-sigma_T_fit = sigma_T_func(Q2_var, *popt_T)
-axs_3[1].plot(abs_t_cent_var, sigma_T_fit, 'r--', label='Fit')
-axs_3[1].legend()
-
-# σ_LT vs t
-axs_3[2].errorbar(abs_t_cent_var, sigma_LT, yerr=sigma_LT_err, fmt='^', color='green', label='Data')
-axs_3[2].set_title(r'$\sigma_{LT}$ vs $t$', fontsize=16, fontweight='bold')
-axs_3[2].set_xlabel(r'$t$ (GeV$^2$)', fontsize=14)
-axs_3[2].set_ylabel(r'$\sigma_{LT}$ ($\mu$b/GeV$^2$)', fontsize=14)
-# Functional fit for sigma_LT
-sigma_LT_fit = sigma_LT_func(abs_t_cent_var, Q2_var, *popt_LT, theta_cm_var)
-axs_3[2].plot(abs_t_cent_var, sigma_LT_fit, 'r--', label='Fit')
-axs_3[2].legend()
-
-# σ_TT vs t
-axs_3[3].errorbar(abs_t_cent_var, sigma_TT, yerr=sigma_TT_err, fmt='v', color='purple', label='Data')
-axs_3[3].set_title(r'$\sigma_{TT}$ vs $t$', fontsize=16, fontweight='bold')
-axs_3[3].set_xlabel(r'$t$ (GeV$^2$)', fontsize=14)
-axs_3[3].set_ylabel(r'$\sigma_{TT}$ ($\mu$b/GeV$^2$)', fontsize=14)
-# Functional fit for sigma_TT
-sigma_TT_fit = sigma_TT_func(abs_t_cent_var, Q2_var, *popt_TT, m_pi, theta_cm_var)
-axs_3[3].plot(abs_t_cent_var, sigma_TT_fit, 'r--', label='Fit')
-axs_3[3].legend()
-
-plt.tight_layout()
-
-# --- Save both figures to the same PDF ---
-fig_3.savefig(LT_Sep_Xsection_py_pdf)
-plt.close(fig_3)
-print(f"Saved Sep cross-section plots to {LT_Sep_Xsection_py_pdf}")
-
-print ("Processing Complete")
+print("Processing Complete")

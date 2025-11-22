@@ -15,13 +15,7 @@
 import uproot
 import uproot as up
 import numpy as np
-
-np.bool = bool
-np.float = float
-
-import root_numpy as rnp
 import pandas as pd
-import root_pandas as rpd
 import ROOT
 import scipy
 import scipy.integrate as integrate
@@ -50,6 +44,11 @@ PHY_SETTING = sys.argv[1]
 ITERATION = sys.argv[2]
 SIMC_Suffix = sys.argv[3]
 
+# Check that ITERATION is greater than 00
+if ITERATION <= "00":
+    print("!!!!! ERROR !!!!!\n ITERATION must be greater than 00 \n!!!!! ERROR !!!!!")
+    sys.exit(1)
+
 ################################################################################################################################################
 
 '''
@@ -73,13 +72,8 @@ XSECT_PARAMPATH = "%s/LTSEP_ANALYSIS/src/fit_params" % (REPLAYPATH)
 XSECT_OUTPATH = "%s/LTSEP_ANALYSIS/src/output" % (REPLAYPATH)
 SIMCPATH = "%s/OUTPUT/Analysis/SIMC" % (VOLTILEPATH)
 
-if ITERATION == "00":
-    ITERATION_PREV = f"simc"
-    INPUT_ROOTFILE = "%s/%s_itersimc" % (SIMCPATH, PHY_SETTING)
-else:  
-#    ITERATION_PREV = f"{ITERATION}"
-    ITERATION_PREV = f"{int(ITERATION)-1:02d}"
-    INPUT_ROOTFILE = "%s/%s_iter%s" % (SIMCPATH, PHY_SETTING, ITERATION_PREV)
+ITERATION_PREV = f"{int(ITERATION)-1:02d}"
+INPUT_ROOTFILE = "%s/%s_iter%s" % (SIMCPATH, PHY_SETTING, ITERATION_PREV)
 
 ##################################################################################################################################################
 
@@ -102,23 +96,24 @@ for branch in branches:
     # Rename branches for grabbing
     if bname == 'sigcm':
         grab_bname = f'sigcm_prev_iter{ITERATION_PREV}'
-        branch_arrays[grab_bname] = array.array('f', [np.float128(0)])
+        branch_arrays[grab_bname] = array.array('f', [float(0)])
         branch_types[grab_bname] = 'F'
         TBRANCH_SIMC.SetBranchAddress(bname, branch_arrays[grab_bname])
     elif bname == 'Weight':
         grab_bname = f'Weight_prev_iter{ITERATION_PREV}'
-        branch_arrays[grab_bname] = array.array('f', [np.float128(0)])
+        branch_arrays[grab_bname] = array.array('f', [float(0)])
         branch_types[grab_bname] = 'F'
         TBRANCH_SIMC.SetBranchAddress(bname, branch_arrays[grab_bname])
     else:
         grab_bname = bname
-    branch_arrays[grab_bname] = array.array('f', [np.float128(0)])
+    branch_arrays[grab_bname] = array.array('f', [float(0)])
     branch_types[grab_bname] = 'F'
     TBRANCH_SIMC.SetBranchAddress(bname, branch_arrays[grab_bname])
 
 # Create output file for new weights
 outFile_SIMC = ROOT.TFile.Open("%s/%s_iter%s/%s.root" % (SIMCPATH, PHY_SETTING, ITERATION, SIMC_Suffix.replace(".root","")), "RECREATE")
 #outFile_SIMC = ROOT.TFile.Open("%s/test/%s.root" % (SIMCPATH, SIMC_Suffix.replace(".root","")), "RECREATE")
+print(f"Creating output file: {outFile_SIMC}")
 new_TBRANCH_SIMC = ROOT.TTree("h10", "Iteration_%s" % (ITERATION))
 
 # Create all output branches same as input file
@@ -127,12 +122,12 @@ output_arrays = {}
 # Create all output branches same as input file, including previous iteration Weight and sigcm
 for bname in branch_arrays:
     # Include ALL branches from input file
-    output_arrays[bname] = array.array('f', [np.float128(0)])
+    output_arrays[bname] = array.array('f', [float(0)])
     new_TBRANCH_SIMC.Branch(bname, output_arrays[bname], f"{bname}/F")
 
 # Add new branches: Weight and sigcm (these will be the newly calculated values)
-output_arrays['Weight'] = array.array('f', [np.float128(0)])
-output_arrays['sigcm'] = array.array('f', [np.float128(0)])
+output_arrays['Weight'] = array.array('f', [float(0)])
+output_arrays['sigcm'] = array.array('f', [float(0)])
 new_TBRANCH_SIMC.Branch('Weight', output_arrays['Weight'], 'Weight/F')
 new_TBRANCH_SIMC.Branch('sigcm', output_arrays['sigcm'], 'sigcm/F')
 
@@ -148,7 +143,7 @@ Q2str = PHY_SETTING.split('_')[0]
 if Q2str.startswith('Q'):
     Q2par = Q2str[1:].replace('p', '') 
 
-# Read fit parameters from file and assign to variables (first column only)
+# Read fit parameters from file (first column only)
 param_file = "%s/iter%s/par.pl_%s" % (XSECT_PARAMPATH, ITERATION, Q2par)
 params = []
 with open(param_file, 'r') as f:
@@ -157,23 +152,12 @@ with open(param_file, 'r') as f:
         if len(parts) >= 1:
             params.append(float(parts[0]))
 
-# Assign parameters to variables (first value of each row)
-p1 = params[0]  #1
-p2 = params[1]  #2
-p3 = params[2]  #3 - unassigned
-p4 = params[3]  #4 - unassigned
-p5 = params[4]  #5
-p6 = params[5]  #6
-p7 = params[6]  #7
-p8 = params[7]  #8
-p9 = params[8]  #9
-p10 = params[9]  #10
-p11 = params[10] #11
-p12 = params[11] #12
-p13 = params[12] #13
-p14 = params[13] #14
-p15 = params[14] #15 - unassigned
-p16 = params[15] #16 - unassigned
+# Create parameter dictionary for cleaner access
+p_vals = {f'p{i+1}': params[i] for i in range(len(params))}
+
+# Assign to individual variables (16 parameters expected)
+p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16 = [p_vals.get(f'p{i}', 0.0) for i in range(1, 17)]
+
 print(f"p1={p1}, p2={p2}, p3={p3}, p4={p4}, p5={p5}, p6={p6}, p7={p7}, p8={p8}, p9={p9}, p10={p10}, p11={p11}, p12={p12}, p13={p13}, p14={p14}, p15={p15}, p16={p16}")
 print ("Fit parameters loaded from new iteration file:")
 
@@ -201,44 +185,48 @@ for i in range(total_events):
     # Get event variables first to check for bad data
     Q2_evt = branch_arrays['Q2i'][0]
     W_evt = branch_arrays['Wi'][0]
-    thetacm_rad_evt = branch_arrays['thetapq'][0] * (np.pi / 180.0)  # Convert to radians
-    eps_evt = branch_arrays['epsilon'][0]
-    phi_rad_evt = branch_arrays['phipqi'][0] * (np.pi / 180.0)  # Convert to radians
+    thetacm_rad_evt = branch_arrays['thetacm'][0]
+    eps_evt = branch_arrays['epsiloni'][0]
+    phi_rad_evt = branch_arrays['phicm'][0]
     abs_t_evt = abs(branch_arrays['ti'][0])
     wt_prev_iter = branch_arrays[f'Weight_prev_iter{ITERATION_PREV}'][0]
     sigcm_prev_iter = branch_arrays[f'sigcm_prev_iter{ITERATION_PREV}'][0]
 
     # Functional form for separated cross-section calculation with error handling
-    sigma_T = np.float128((p1 / Q2_evt) + (p2 / (Q2_evt**2)))
-    sigma_L = np.float128(p5 * Q2_evt * np.exp((p6 - p7 * np.log(Q2_evt)) * np.abs(abs_t_evt))) / ((1 + p8 * Q2_evt + p9 * (Q2_evt**2))**2)
-    sigma_LT = np.float128((np.exp(p10 + (p11 * np.abs(abs_t_evt) / np.sqrt(Q2_evt))) + p12 + (p13 / (Q2_evt**2))) * np.sin(thetacm_rad_evt))
-    sigma_TT = np.float128(((p14 / (Q2_evt**2)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * np.sin(thetacm_rad_evt)**2))
+    sigma_T = float((p1 / Q2_evt) * (np.exp(p2 * Q2_evt**2)) * (np.exp(p3 * np.abs(abs_t_evt))))
 
-    wfactor = np.float128(1.0 / ((W_evt**2 - mp**2)**2))
-    diff_xsect_new_iter = np.float128((1 / (2 * np.pi)) * (eps_evt * sigma_L + sigma_T + np.sqrt(2 * eps_evt * (eps_evt + 1)) * sigma_LT * np.cos(phi_rad_evt) + eps_evt * sigma_TT * np.cos(2 * phi_rad_evt)))
+    sigma_L = float((p4 + p5 / Q2_evt) * (np.abs(abs_t_evt) / (np.abs(abs_t_evt) + m_pi**2)**2) * (np.exp(p6 * np.abs(abs_t_evt))) *(Q2_evt/((1 + p7 * Q2_evt + p8 * (Q2_evt**2))**2)))
+
+    sigma_LT = float(((p9 / (Q2_evt)) + (np.exp(p10 / np.abs(abs_t_evt))) * (p11 /(np.abs(abs_t_evt))**p12)) * np.sin(thetacm_rad_evt))
+
+    sigma_TT = float(((p13 / (Q2_evt)) + (np.exp(p14 * np.abs(abs_t_evt))) * (p15 /(np.abs(abs_t_evt))**p16)) * np.sin(thetacm_rad_evt)**2)
+
+    wfactor = float(1.0 / ((W_evt**2 - mp**2)**2))
+    diff_xsect_new_iter = float((1 / (2 * np.pi)) * (eps_evt * sigma_L + sigma_T + np.sqrt(2 * eps_evt * (eps_evt + 1)) * sigma_LT * np.cos(phi_rad_evt) + eps_evt * sigma_TT * np.cos(2 * phi_rad_evt)))
+    
     diff_xsect_new_iter *= wfactor
 
-    mod_diff_xsect_new_iter = np.float128(diff_xsect_new_iter / 1e6)  # Convert to microbarns/MeV**2/rad
+    mod_diff_xsect_new_iter = float(diff_xsect_new_iter / 1e6)  # Convert to microbarns/MeV**2/rad
 
     # Calculate new weight with error handling
     if sigcm_prev_iter == 0 or np.isnan(sigcm_prev_iter) or np.isnan(mod_diff_xsect_new_iter) or np.isnan(wt_prev_iter):
-        wt_new_iter = np.float128(0.0)
+        wt_new_iter = float(0.0)
     else:
-        wt_new_iter = np.float128(wt_prev_iter * (mod_diff_xsect_new_iter / sigcm_prev_iter))
+        wt_new_iter = float(wt_prev_iter * (mod_diff_xsect_new_iter / sigcm_prev_iter))
     
 #    try:
-#        wt_new_iter = np.float128(wt_prev_iter * (mod_diff_xsect_new_iter / sigcm_prev_iter))
+#        wt_new_iter = float(wt_prev_iter * (mod_diff_xsect_new_iter / sigcm_prev_iter))
 #    except ZeroDivisionError:
-#        wt_new_iter = np.float128(0.0)
+#        wt_new_iter = float(0.0)
 
     # Check for invalid weights (complex, negative, or zero)
     if isinstance(wt_new_iter, complex) or wt_new_iter <= 0.0:
-        wt_new_iter = np.float128(0.0)
-        mod_diff_xsect_new_iter = np.float128(0.0)
+        wt_new_iter = float(0.0)
+        mod_diff_xsect_new_iter = float(0.0)
 
     # Store calculated values in lists
-    sigcm_list.append(np.float128(mod_diff_xsect_new_iter))
-    weight_list.append(np.float128(wt_new_iter))
+    sigcm_list.append(float(mod_diff_xsect_new_iter))
+    weight_list.append(float(wt_new_iter))
 
     # Print comparison of previous and new sigcm for each event
     if i < 3:
@@ -252,14 +240,14 @@ for i in range(total_events):
         if bname not in ['sigcm', 'Weight']:
             output_arrays[bname][0] = branch_arrays[bname][0]
     # Set the calculated sigcm and Weight values
-    output_arrays['sigcm'][0] = np.float128(mod_diff_xsect_new_iter)
-    output_arrays['Weight'][0] = np.float128(wt_new_iter)
+    output_arrays['sigcm'][0] = float(mod_diff_xsect_new_iter)
+    output_arrays['Weight'][0] = float(wt_new_iter)
     new_TBRANCH_SIMC.Fill()
 
 new_TBRANCH_SIMC.Write("h10",ROOT.TObject.kOverwrite)
 outFile_SIMC.Close()
 infile_SIMC.Close()
-print(f"Reweighted SIMC file written to {outFile_SIMC.GetName()}")
+print(f"\nReweighted SIMC file written to {outFile_SIMC.GetName()}")
 
 print(f"\nThere were {len(bad_events)}/{total_events} bad events skipped...")
 

@@ -314,6 +314,7 @@ c      real f_tm,g_W,tav,f_tav
       mpig=139.57018/1000.      !mpi
 
       phicm = phi
+      if (phicm .lt. 0.0) phicm = phicm + 360.0   
       t_gev = abs(tm)      ! just to make sure it's positive
 
 *     Calculate model thetacm and epsilon at first.
@@ -355,21 +356,35 @@ c 10   format('parameters/par.',a2,'_',i3.3,'/par.',a2,'_',i3.3)
       end do
  9    close(56)
       
-c===========================
-c     Tanja's Fpi-2 parameterization in SIMC physics_iterate.f
+c========================================================================
 
-      sigt = (fitpar(1)/Q2_gev)+(fitpar(2)/(Q2_gev**2))
+      sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
+     1        * (exp(fitpar(3) * abs(t_gev)))
 
-      sigl = (fitpar(5)*Q2_gev
-     1	      *exp((fitpar(6)-fitpar(7)*log(Q2_gev))*abs(t_gev)))
-     2        /(1+fitpar(8)*Q2_gev+fitpar(9)*(Q2_gev**2))**2
+c-------------------------------------------------------------------------
 
-      siglt=(exp(fitpar(10)+(fitpar(11)*abs(t_gev)/sqrt(Q2_gev)))
-     1       +fitpar(12)+(fitpar(13)/(Q2_gev**2)))*sin(thetacm)
+      sigl = (fitpar(4) + fitpar(5)/Q2_gev) * (abs(t_gev) /
+     1        (abs(t_gev) + mpig**2)**2)*(exp(fitpar(6) * abs(t_gev))) *
+     2        (Q2_gev / (1+fitpar(7)*Q2_gev+fitpar(8)*(Q2_gev**2))**2)
 
-      sigtt=((fitpar(14)/(Q2_gev**2)) 
-     1       *(abs(t_gev)/(abs(t_gev)+mpig**2)**2))*sin(thetacm)**2
-      
+c--------------------------------------------------------------------------
+
+      siglt=((fitpar(9)/(Q2_gev)) + (exp(fitpar(10) / abs(t_gev))) *
+     1       (fitpar(11) / (abs(t_gev))**fitpar(12))) 
+     2      * sin(thetacm)
+
+c--------------------------------------------------------------------------
+
+      sigtt=((fitpar(13)/(Q2_gev)) + (exp(fitpar(14) * abs(t_gev))) *
+     1       (fitpar(15) / (abs(t_gev))**fitpar(16))) 
+     2      * sin(thetacm)**2
+
+c---------------------------------------------------------------------------
+      sigT=sigt
+      sigL=sigl
+      sigLT=siglt
+      sigTT=sigtt
+
 c We assume W scales as 1/(W^2-mp^2)^2.
       wfactor= 1.0/(w**2-mp**2)**2
 c
@@ -384,6 +399,7 @@ c      write(6,*)' LT ', sigLT,sigLT*wfactor,thetacm*180./pi
 c      write(6,*)' TT ', sigTT,sigTT*wfactor,thetacm*180./pi
 c      write(6,*)' sig ', sig,wfactor,eps_mod,phicm*180./pi
 c      
+   
       x_mod = sig
       th_mod=thetacm
       
