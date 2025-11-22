@@ -412,7 +412,9 @@ c
       write(6,*)' T ', sigT*wfactor
       write(6,*)' LT ', sigLT*wfactor,thetacm*180./pi
       write(6,*)' TT ', sigTT*wfactor,thetacm*180./pi
-      write(6,*)' sig ', sig,wfactor,eps_mod,phicm*180./pi
+      write(6,*)' sig ', sig,wfactor,eps_mod,phicm
+      phicm = phicm*180./pi
+c      if (phicm .lt. 0.0) phicm = phicm + 360.0
 c      
 c      if (phi.lt.0.3) then
 c         write(6,102) eps_mod,tm,sigL,sigT,sigTT,sigLT, x_mod
