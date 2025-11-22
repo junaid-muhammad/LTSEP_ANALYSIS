@@ -314,7 +314,7 @@ c      real f_tm,g_W,tav,f_tav
       mpig=139.57018/1000.      !mpi
 
       phicm = phi
-c      if (phicm .lt. 0.0) phicm = phicm + 360.0   
+      if (phicm .lt. 0.0) phicm = phicm + 360.0   
       t_gev = abs(tm)      ! just to make sure it's positive
 
 *     Calculate model thetacm and epsilon at first.
@@ -357,32 +357,11 @@ c 10   format('parameters/par.',a2,'_',i3.3,'/par.',a2,'_',i3.3)
  9    close(56)
       
 c========================================================================
-c     Tanja's Fpi-2 parameterization in SIMC physics_iterate.f
-
-c      sigt = (fitpar(1)/Q2_gev)+(fitpar(2)/(Q2_gev**2))
-
-c      sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
-c     1        * (exp(fitpar(3) * abs(t_gev)))
-
-c      sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
-c     1        * (exp(fitpar(3) * abs(t_gev))/abs(t_gev))
 
       sigt = (fitpar(1) / Q2_gev) * (exp(fitpar(2) * Q2_gev**2))
      1        * (exp(fitpar(3) * abs(t_gev)))
 
 c-------------------------------------------------------------------------
-
-c      sigl = (fitpar(5)*Q2_gev
-c     1	      *exp((fitpar(6)-fitpar(7)*log(Q2_gev))*abs(t_gev)))
-c     2        /(1+fitpar(8)*Q2_gev+fitpar(9)*(Q2_gev**2))**2
-
-c      sigl = (fitpar(5) + fitpar(6)/Q2_gev) * abs(t_gev) /
-c     1        (abs(t_gev) + mpig**2)**2 * exp(fitpar(7) * abs(t_gev)) *
-c     2        (Q2_gev / (1+fitpar(8)*Q2_gev+fitpar(9)*(Q2_gev**2))**2)
-
-c      sigl = (fitpar(4) + fitpar(5)/Q2_gev) * (abs(t_gev) /
-c     1        (abs(t_gev) + mpig**2)**2)*(exp(fitpar(6) * abs(t_gev))) *
-c     2        (Q2_gev / (1+fitpar(7)*Q2_gev+fitpar(8)*(Q2_gev**2))**2)
 
       sigl = (fitpar(4) + fitpar(5)/Q2_gev) * (abs(t_gev) /
      1        (abs(t_gev) + mpig**2)**2)*(exp(fitpar(6) * abs(t_gev))) *
@@ -390,80 +369,15 @@ c     2        (Q2_gev / (1+fitpar(7)*Q2_gev+fitpar(8)*(Q2_gev**2))**2)
 
 c--------------------------------------------------------------------------
 
-c      siglt=(exp(fitpar(10)+(fitpar(11)*abs(t_gev)/sqrt(Q2_gev)))
-c     1       +fitpar(12)+(fitpar(13)/(Q2_gev**2)))*sin(thetacm)
-
-c      siglt=(((fitpar(10)/(1+Q2_gev)) * exp(fitpar(11) * abs(t_gev))) + 
-c     1       (fitpar(12) / (abs(t_gev)**2))) * sin(thetacm)
-
-c      siglt=(((fitpar(10)/(1+(fitpar(11) * Q2_gev))) * 
-c     1      (abs(t_gev)/(abs(t_gev)+mpig**2)**2)) + 
-c     2       (fitpar(12) / (abs(t_gev)**2))) * sin(thetacm)
-
-c      siglt=(((fitpar(10)/(Q2_gev)) + exp(fitpar(11) * abs(t_gev))) * 
-c     1       (fitpar(12) / (abs(t_gev)**2))) * sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) + (exp(fitpar(10) * abs(t_gev))) * 
-c     1       (fitpar(11)/(fitpar(12)+abs(t_gev))**2)) * sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) + (exp(fitpar(10) * abs(t_gev))) * 
-c     1       (fitpar(11)/(abs(t_gev))**fitpar(12))) * sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) * (exp(fitpar(10) * abs(t_gev)))
-c     1       *(abs(t_gev)/(abs(t_gev)+mpig**2)**2))*sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) + (fitpar(10)/abs(t_gev))) 
-c     1 * sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) + ((exp(-fitpar(10) * abs(t_gev))) * 
-c     1       (fitpar(11)/(fitpar(12)+abs(t_gev))))) * sin(thetacm)
-
-c      siglt=((fitpar(9)/(Q2_gev)) + ((exp(-fitpar(10) * abs(t_gev))) * 
-c     1     (fitpar(11)*abs(t_gev)**fitpar(12)))) * sin(thetacm)
-
-      siglt=((fitpar(9)/(Q2_gev)) + (fitpar(10)/(abs(t_gev))) + 
-     1       ((exp(fitpar(11) / abs(t_gev))) * 
-     2       (fitpar(12)/(abs(t_gev))**2))) * sin(thetacm)
+      siglt=((fitpar(9)/(Q2_gev)) + (exp(fitpar(10) / abs(t_gev))) *
+     1       (fitpar(11) / (abs(t_gev))**fitpar(12))) 
+     2      * sin(thetacm)
 
 c--------------------------------------------------------------------------
 
-c      sigtt=((fitpar(14)/(Q2_gev**2)) 
-c     1       *(abs(t_gev)/(abs(t_gev)+mpig**2)**2))*sin(thetacm)**2
-
-c      sigtt=((fitpar(14)/(Q2_gev**2)) 
-c     1       *(abs(t_gev)/(abs(t_gev)+mpig**2)**2) * 
-c     2       (exp(fitpar(15) * abs(t_gev))))*sin(thetacm)**2
-
-c      sigtt=(((fitpar(14)/(1+Q2_gev))*exp(fitpar(15) * abs(t_gev)))+ 
-c     1       (fitpar(16) / (abs(t_gev)**3))) * sin(thetacm)**2
-
-c      sigtt=((fitpar(14)/(Q2_gev))+
-c     2      (abs(t_gev)/(abs(t_gev)+mpig**2)**2) * 
-c     1       (fitpar(15) / (abs(t_gev)**3))) * sin(thetacm)**2
-
-c      sigtt=((fitpar(14)/(Q2_gev)) + 
-c     1       (fitpar(15) / (abs(t_gev)**3))) * sin(thetacm)**2
-
-c      sigtt=((fitpar(13)/(Q2_gev)) +
-c     1       (fitpar(14) / (fitpar(15)+(abs(t_gev)))**3)) 
-c     2      * sin(thetacm)**2
-
-c      sigtt=((fitpar(13)/(Q2_gev)) + (fitpar(14)/(abs(t_gev)**2)) + 
-c     1       ((exp(fitpar(15) * abs(t_gev))) * 
-c     2       (fitpar(16)/(abs(t_gev))**3))) * sin(thetacm)**2
-
-c      sigtt=((fitpar(13)/(Q2_gev)) + (exp(fitpar(14) * abs(t_gev))) *
-c     1       (fitpar(15) / (fitpar(16)+(abs(t_gev)))**3)) 
-c     2      * sin(thetacm)**2
-
-c      sigtt=((fitpar(13)/(Q2_gev) + (fitpar(14)/(abs(t_gev)))) * 
-c     1       ((exp(fitpar(15) * abs(t_gev))) * 
-c     2       (fitpar(16)/(abs(t_gev))**3))) * sin(thetacm)**2
-
-      sigtt=((fitpar(13)/(Q2_gev)) +
-     1     (fitpar(14)/(abs(t_gev))) + 
-     2       ((exp(fitpar(15) * abs(t_gev))) * 
-     3       (fitpar(16)/(abs(t_gev))**3))) * sin(thetacm)**2
+      sigtt=((fitpar(13)/(Q2_gev)) + (exp(fitpar(14) * abs(t_gev))) *
+     1       (fitpar(15) / (abs(t_gev))**fitpar(16))) 
+     2      * sin(thetacm)**2
 
 c---------------------------------------------------------------------------
       sigT=sigt

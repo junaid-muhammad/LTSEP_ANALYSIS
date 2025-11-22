@@ -449,14 +449,9 @@ def sigma_T_root_func(x, par):
     Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
     W = np.interp(var_tcm, abs_t_cent_var, W_var)
     W_factor = 1.0 / (W**2 - m_p**2)**2
-#    return (W_factor * ((par[0] / Q2) + (par[1] / (Q2**2))))
-#    return (W_factor * (((par[0] / Q2) + (par[1] / (Q2**2))) * (np.exp(par[2] * np.abs(var_tcm)))))
-#    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm)))))
-#    return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm))/np.abs(var_tcm))))
     return(W_factor * ((par[0] / Q2) * (np.exp(par[1] * Q2**2)) * (np.exp(par[2] * np.abs(var_tcm)))))
 
 sigma_T_root = ROOT.TF1("sigma_T_func", sigma_T_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 3)
-#p3 = -0.5
 sigma_T_root.SetParameters(p1, p2, p3)  # Set par[0] = p1, par[1] = p2, par[2] = p3
 # Control parameter fixing for σT
 if not FIT_SIGMA_T:
@@ -482,11 +477,9 @@ def sigma_L_root_func(x, par):
     Q2 = np.interp(var_tcm, abs_t_cent_var, Q2_var)
     W = np.interp(var_tcm, abs_t_cent_var, W_var)
     W_factor = 1.0 / (W**2 - m_p**2)**2
-#    return (par[0] * Q2 * np.exp((par[1] - par[2] * np.log(Q2)) * np.abs(var_tcm))) / (1 + par[3] * Q2 + par[4] * (Q2**2))**2
-#    return (W_factor * ((par[0] + par[1] / Q2) * np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2 * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
     return (W_factor * ((par[0] + par[1] / Q2) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (np.exp(par[2] * np.abs(var_tcm))) *(Q2/((1 + par[3] * Q2 + par[4] * (Q2**2))**2))))
+
 sigma_L_root = ROOT.TF1("sigma_L_func", sigma_L_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 5)
-#p6 = 0.08
 sigma_L_root.SetParameters(p4, p5, p6, p7, p8)  # All parameters are fitted
 # Control parameter fixing for σL
 if not FIT_SIGMA_L:
@@ -508,8 +501,6 @@ else:
     print("σ_L parameters will be FITTED")
 sigma_L_root.SetLineColor(ROOT.kRed)
 sigma_L_root.SetLineStyle(2)  # Dashed line
-#ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls(90000)
-#ROOT.Math.MinimizerOptions.SetDefaultMinimizer("Minuit2")
 fit_result_L = gr_L.Fit(sigma_L_root, "RMES")  # S option for better statistics
 print(f"σ_L fit status: {fit_result_L.Status()}, Chi2/NDF: {fit_result_L.Chi2():.3f}/{fit_result_L.Ndf()}")
 if fit_result_L.Ndf() > 0:
@@ -522,19 +513,10 @@ def sigma_LT_root_func(x, par):
     theta = np.interp(var_tcm, abs_t_cent_var, theta_cm_var)
     W = np.interp(var_tcm, abs_t_cent_var, W_var)
     W_factor = 1.0 / (W**2 - m_p**2)**2
-#    return (W_factor * (np.exp(par[0] + (par[1] * np.abs(var_tcm) / np.sqrt(Q2))) + par[2] + (par[3] / (Q2**2))) * np.sin(theta))
-#    return (W_factor * ((((par[0] / (1 + Q2)) * np.exp(par[1] * np.abs(var_tcm))) + (par[2] / np.abs(var_tcm)**2)) * np.sin(theta)))
-#    return (W_factor * ((((par[0] / (1 + (par[1] * Q2))) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2)) + (par[2] / np.abs(var_tcm)**2)) * np.sin(theta)))
-#    return (W_factor * ((((par[0] / (Q2)) + np.exp(par[1] * np.abs(var_tcm))) * (par[2] / np.abs(var_tcm)**2)) * np.sin(theta)))
-#    return (W_factor * (((par[0] / (Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))**2)) * np.sin(theta)))
-#    return (W_factor * (((par[0] / (Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (np.abs(var_tcm))**par[3])) * np.sin(theta)))
-#    return (W_factor * ((par[0] / (Q2)) * (np.exp(par[1] * np.abs(var_tcm))) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * np.sin(theta)))
-#    return (W_factor * (((par[0] / (Q2)) + (par[1] / np.abs(var_tcm))) * np.sin(theta)))
-#    return (W_factor * (((par[0] / (Q2)) + ((np.exp(-par[1] * np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))))) * np.sin(theta)))
-#    return (W_factor * (((par[0] / (Q2)) + ((np.exp(-par[1] * np.abs(var_tcm))) * (par[2] * np.abs(var_tcm)**par[3]))) * np.sin(theta)))
-    return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))) + ((np.exp(par[2] / np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**2))) * np.sin(theta)))
+    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] / np.abs(var_tcm))) * (par[2] / (np.abs(var_tcm))**par[3])) * np.sin(theta)))
+
 sigma_LT_root = ROOT.TF1("sigma_LT_func", sigma_LT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
-p11 = -0.13
+p10 = -4.8
 
 sigma_LT_root.SetParameters(p9, p10, p11, p12)  # All parameters are fitted
 # Control parameter fixing for σLT
@@ -546,8 +528,8 @@ if not FIT_SIGMA_LT:
     print("σ_LT parameters FIXED")
 else:
 #    sigma_LT_root.FixParameter(0, p9)  # Fix p9
-#    sigma_LT_root.FixParameter(1, p10)  # Fix p10
-    sigma_LT_root.FixParameter(2, p11)  # Fix p11
+    sigma_LT_root.FixParameter(1, p10)  # Fix p10
+#    sigma_LT_root.FixParameter(2, p11)  # Fix p11
 #    sigma_LT_root.FixParameter(3, p12)  # Fix p12
     print("σ_LT parameters will be FITTED")
 sigma_LT_root.SetLineColor(ROOT.kRed)
@@ -564,21 +546,10 @@ def sigma_TT_root_func(x, par):
     theta = np.interp(var_tcm, abs_t_cent_var, theta_cm_var)
     W = np.interp(var_tcm, abs_t_cent_var, W_var)
     W_factor = 1.0 / (W**2 - m_p**2)**2
-#    return (W_factor * ((par[0] / (Q2**2)) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * np.sin(theta)**2))
-#    return (W_factor * ((par[0] / (Q2**2)) * (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (np.exp(par[1] * np.abs(var_tcm))) * np.sin(theta)**2))
-#    return (W_factor * ((((par[0] /( 1 + Q2)) * np.exp(par[1] * np.abs(var_tcm))) + (par[2] / np.abs(var_tcm)**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] /(Q2)) + (np.abs(var_tcm) / (np.abs(var_tcm) + m_pi**2)**2) * (par[1] / np.abs(var_tcm)**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] /(Q2))  + (par[1] / np.abs(var_tcm)**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))**2) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] / (Q2)) + (par[1] / (np.abs(var_tcm))) + ((np.exp(par[2] / np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(2 * theta)))
-#    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] / np.abs(var_tcm))) * (par[2] / (par[3] + np.abs(var_tcm))**3)) * np.sin(theta)**2))
-#    return (W_factor * (((par[0] / (Q2)**2) + (par[1] * (np.abs(var_tcm))) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(2 * theta)))
-    return (W_factor * (((par[0] / (Q2)) + (par[1]/np.abs(var_tcm)) + ((np.exp(par[2] * np.abs(var_tcm))) * (par[3] / (np.abs(var_tcm))**3))) * np.sin(theta)**2))
+    return (W_factor * (((par[0] /(Q2)) + (np.exp(par[1] * np.abs(var_tcm))) * (par[2] / (np.abs(var_tcm))**par[3])) * np.sin(theta)**2))
 
 sigma_TT_root = ROOT.TF1("sigma_TT_func", sigma_TT_root_func, min(abs_t_cent_var), max(abs_t_cent_var), 4)
-p15 = 6.5
+p14 = 0
 
 sigma_TT_root.SetParameters(p13, p14, p15, p16)  # All parameters are fitted
 # Control parameter fixing for σTT
@@ -590,9 +561,9 @@ if not FIT_SIGMA_TT:
     print("σ_TT parameters FIXED")
 else:
 #    sigma_TT_root.FixParameter(0, p13)  # Fix p13
-#    sigma_TT_root.FixParameter(1, p14)  # Fix p14
-    sigma_TT_root.FixParameter(2, p15)  # Fix p15
-#    sigma_TT_root.FixParameter(3, p16)  # Fix p16
+    sigma_TT_root.FixParameter(1, p14)  # Fix p14
+#    sigma_TT_root.FixParameter(2, p15)  # Fix p15
+    sigma_TT_root.FixParameter(3, p16)  # Fix p16
     print("σ_TT parameters will be FITTED")
 sigma_TT_root.SetLineColor(ROOT.kRed)
 sigma_TT_root.SetLineStyle(2)  # Dashed line

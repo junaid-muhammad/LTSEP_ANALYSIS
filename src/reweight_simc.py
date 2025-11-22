@@ -73,8 +73,7 @@ XSECT_OUTPATH = "%s/LTSEP_ANALYSIS/src/output" % (REPLAYPATH)
 SIMCPATH = "%s/OUTPUT/Analysis/SIMC" % (VOLTILEPATH)
 
 ITERATION_PREV = f"{int(ITERATION)-1:02d}"
-#INPUT_ROOTFILE = "%s/%s_iter%s" % (SIMCPATH, PHY_SETTING, ITERATION_PREV)
-INPUT_ROOTFILE = "%s/%s_iter00" % (SIMCPATH, PHY_SETTING)
+INPUT_ROOTFILE = "%s/%s_iter%s" % (SIMCPATH, PHY_SETTING, ITERATION_PREV)
 
 ##################################################################################################################################################
 
@@ -194,43 +193,13 @@ for i in range(total_events):
     sigcm_prev_iter = branch_arrays[f'sigcm_prev_iter{ITERATION_PREV}'][0]
 
     # Functional form for separated cross-section calculation with error handling
-
-#    sigma_T = float((p1 / Q2_evt) + (p2 / (Q2_evt**2)))
-#    sigma_T = float((p1 / Q2_evt) * (np.exp(p2 * Q2_evt**2)) * (np.exp(p3 * np.abs(abs_t_evt))))
-#    sigma_T = float(((p1 / Q2_evt) + (p2 / (Q2_evt**2))) * np.exp(p3 * np.abs(abs_t_evt)))
-#    sigma_T = float((p1 / Q2_evt) * (np.exp(p2 * Q2_evt**2)) * (np.exp(p3 * np.abs(abs_t_evt))/(np.abs(abs_t_evt))))
     sigma_T = float((p1 / Q2_evt) * (np.exp(p2 * Q2_evt**2)) * (np.exp(p3 * np.abs(abs_t_evt))))
 
-#    sigma_L = float(p5 * Q2_evt * np.exp((p6 - p7 * np.log(Q2_evt)) * np.abs(abs_t_evt))) / ((1 + p8 * Q2_evt + p9 * (Q2_evt**2))**2)
-#    sigma_L = float((p5 + p6 / Q2_evt) * np.abs(abs_t_evt) / (np.abs(abs_t_evt) + m_pi**2)**2 * (np.exp(p7 * np.abs(abs_t_evt))) *(Q2_evt/((1 + p8 * Q2_evt + p9 * (Q2_evt**2))**2)))
-#    sigma_L = float((p4 + p5 / Q2_evt) * (np.abs(abs_t_evt) / (np.abs(abs_t_evt) + m_pi**2)**2) * (np.exp(p6 * np.abs(abs_t_evt))) *(Q2_evt/((1 + p7 * Q2_evt + p8 * (Q2_evt**2))**2)))
     sigma_L = float((p4 + p5 / Q2_evt) * (np.abs(abs_t_evt) / (np.abs(abs_t_evt) + m_pi**2)**2) * (np.exp(p6 * np.abs(abs_t_evt))) *(Q2_evt/((1 + p7 * Q2_evt + p8 * (Q2_evt**2))**2)))
 
-#    sigma_LT = float((np.exp(p10 + (p11 * np.abs(abs_t_evt) / np.sqrt(Q2_evt))) + p12 + (p13 / (Q2_evt**2))) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p10 / (1 + Q2_evt)) * np.exp(p11 * np.abs(abs_t_evt)) + (p12 /np.abs(abs_t_evt)**2)) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float((((p10 / (1 + p11 * Q2_evt)) * (np.abs(abs_t_evt) / (np.abs(abs_t_evt) + m_pi**2)**2))+ (p12 /np.abs(abs_t_evt)**2)) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p10 / (Q2_evt)) + (np.exp(p11 * np.abs(abs_t_evt))) * (p12 /np.abs(abs_t_evt)**2)) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) + (np.exp(p10 * np.abs(abs_t_evt))) * (p11 /(p12 + np.abs(abs_t_evt))**2)) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) + (np.exp(p10 * np.abs(abs_t_evt))) * (p11 /(np.abs(abs_t_evt))**p12)) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * np.sin(thetacm_rad_evt)))
-#    sigma_LT = float(((p9 / (Q2_evt)) * (np.exp(p10 * np.abs(abs_t_evt))) *(np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * np.sin(thetacm_rad_evt)))
-#    sigma_LT = float(((p9 / (Q2_evt)) + (p10 /np.abs(abs_t_evt))) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) + ((np.exp(-p10 * np.abs(abs_t_evt))) * (p11 / (p12 + np.abs(abs_t_evt))))) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) + ((np.exp(-p10 * np.abs(abs_t_evt))) * ((p11 * np.abs(abs_t_evt)**p12)))) * np.sin(thetacm_rad_evt))
-#    sigma_LT = float(((p9 / (Q2_evt)) + (p10 / (np.abs(abs_t_evt))) + ((np.exp(p11 / np.abs(abs_t_evt))) * (p12 / (np.abs(abs_t_evt))**2))) * np.sin(thetacm_rad_evt))
-    sigma_LT = float(((p9 / (Q2_evt)) + (p10 / (np.abs(abs_t_evt))) + ((np.exp(p11 / np.abs(abs_t_evt))) * (p12 / (np.abs(abs_t_evt))**2))) * np.sin(thetacm_rad_evt))
+    sigma_LT = float(((p9 / (Q2_evt)) + (np.exp(p10 / np.abs(abs_t_evt))) * (p11 /(np.abs(abs_t_evt))**p12)) * np.sin(thetacm_rad_evt))
 
-#    sigma_TT = float(((p14 / (Q2_evt**2)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * np.sin(thetacm_rad_evt)**2))
-#    sigma_TT = float(((p14 / (Q2_evt**2)) * (np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2)) * (np.exp(p15 * np.abs(abs_t_evt)))) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p14 / (1 + Q2_evt)) * np.exp(p15 * np.abs(abs_t_evt)) + (p16 /np.abs(abs_t_evt)**3)) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p14 / (Q2_evt)) + ((np.abs(abs_t_evt) / ((np.abs(abs_t_evt) + m_pi**2)**2))) * (p15 /np.abs(abs_t_evt)**3)) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p14 / (Q2_evt)) + (np.exp(p15 * np.abs(abs_t_evt))) * (p16 /np.abs(abs_t_evt)**3)) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p13 / (Q2_evt)) + (p14 /(p15 + np.abs(abs_t_evt))**3)) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p13 / (Q2_evt)) + (p14 / (np.abs(abs_t_evt))**2) + (np.exp(p15 * np.abs(abs_t_evt)) * (p16 /(np.abs(abs_t_evt))**3))) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p13 / (Q2_evt)) + (np.exp(p14 * np.abs(abs_t_evt))) * (p15 /(p16 + np.abs(abs_t_evt))**3)) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p13 / (Q2_evt)) + (p14 / (np.abs(abs_t_evt))**2) + (np.exp(p15 * np.abs(abs_t_evt)) * (p16 /(np.abs(abs_t_evt))**3))) * np.sin(thetacm_rad_evt)**2)
-#    sigma_TT = float(((p13 / (Q2_evt)) + (p14 / (np.abs(abs_t_evt))) + (np.exp(p15 * np.abs(abs_t_evt)) * (p16 /(np.abs(abs_t_evt))**3))) * np.sin(thetacm_rad_evt)**2)
-    sigma_TT = float(((p13 / (Q2_evt)) + (p14 / (np.abs(abs_t_evt))) + ((np.exp(p15 * np.abs(abs_t_evt))) * (p16 / (np.abs(abs_t_evt))**3))) * np.sin(thetacm_rad_evt)**2)
+    sigma_TT = float(((p13 / (Q2_evt)) + (np.exp(p14 * np.abs(abs_t_evt))) * (p15 /(np.abs(abs_t_evt))**p16)) * np.sin(thetacm_rad_evt)**2)
 
     wfactor = float(1.0 / ((W_evt**2 - mp**2)**2))
     diff_xsect_new_iter = float((1 / (2 * np.pi)) * (eps_evt * sigma_L + sigma_T + np.sqrt(2 * eps_evt * (eps_evt + 1)) * sigma_LT * np.cos(phi_rad_evt) + eps_evt * sigma_TT * np.cos(2 * phi_rad_evt)))

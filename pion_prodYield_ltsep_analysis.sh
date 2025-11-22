@@ -117,7 +117,9 @@ DUMMY_Suffix=ProdCoin_Analysed_Dummy_Data
 SIMC_Suffix="Prod_Coin_${SIMC_SETTING}"
 DATA_RUN_LIST=${PHY_SETTING}
 DUMMY_RUN_LIST=${PHY_SETTING}_dummy
-CSV_FILE=PionLT_coin_production_Prod_efficiency_data_2025_03_08
+#CSV_FILE=PionLT_coin_production_Prod_efficiency_data_2025_10_23
+CSV_FILE=PionLT_coin_production_Prod_efficiency_data_2025_11_21
+
 
 # Input Arguments for avergae kinematics and yields calculation Script
 PHY_SETTING_C=$(echo "${PHY_SETTING_INP}" | awk -F'_' '{print $1 "_" $2 "_" $3}')
