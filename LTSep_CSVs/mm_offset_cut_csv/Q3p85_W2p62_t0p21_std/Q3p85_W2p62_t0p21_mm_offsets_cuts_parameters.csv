@@ -1,0 +1,6 @@
+Physics Setting,MM_Offset,MM_Cut_low,MM_Cut_high
+Q3p85_W2p62_t0p21_loweps_center,-0.006412,0.9,1.06
+Q3p85_W2p62_t0p21_loweps_left,-0.005617,0.9,1.06
+Q3p85_W2p62_t0p21_higheps_right,0.009250,0.9,1.06
+Q3p85_W2p62_t0p21_higheps_center,0.010190,0.9,1.06
+Q3p85_W2p62_t0p21_higheps_left,0.010743,0.9,1.06

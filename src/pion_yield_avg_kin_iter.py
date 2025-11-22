@@ -418,6 +418,8 @@ def error_weighted_avgkin_data(row):
         result[f"data_{var}"] = weighted_avg
         result[f"data_{var}_err"] = weighted_avg_err
     # theta_cm Calculation
+    Eb_loweps = row["Beam_Energy_loweps_center"]
+    Eb_higheps = row["Beam_Energy_higheps_center"]
     tm = row["t_central"]
     q2 = float(result["data_avg_Q2"])
     w = float(result["data_avg_W"])
@@ -433,7 +435,11 @@ def error_weighted_avgkin_data(row):
     tmin = -((e1cm - e3cm)**2 - (p1cm - p3cm)**2)
     thetacm = 2 * math.asin(math.sqrt((tm - tmin) / (4 * p1cm * p3cm)))
     thetacm_deg = thetacm * 180 / math.pi  # Convert to degrees
+    low_eps = 1/(1 + 2 * (q2 + omega**2)/(4 * Eb_loweps * (Eb_loweps-omega) - q2))
+    high_eps = 1/(1 + 2 * (q2 + omega**2)/(4 * Eb_higheps * (Eb_higheps-omega) - q2))
     result["theta_cm"] = thetacm_deg
+    result["epsilon_low"] = low_eps
+    result["epsilon_high"] = high_eps
     result["Beam_Energy_loweps"] = row["Beam_Energy_loweps_center"]
     result["Beam_Energy_higheps"] = row["Beam_Energy_higheps_center"]
     return pd.Series(result)
@@ -490,7 +496,7 @@ final_combined_df.insert(0, "Physics_Setting", f"{PHY_SETTING}")
 
 # Reorder columns for final output
 final_avgkin_df = final_combined_df[[
-    "Physics_Setting", "Beam_Energy_loweps", "Beam_Energy_higheps", "total_tbins", 
+    "Physics_Setting", "Beam_Energy_loweps", "Beam_Energy_higheps", "epsilon_low", "epsilon_high", "total_tbins",
     "tbin_number", "t_min", "t_max", "t_central", "total_phibins", "phi_central", "theta_cm",
     "data_avg_Q2", "data_avg_Q2_err",
     "data_avg_W", "data_avg_W_err",
@@ -532,7 +538,8 @@ for t_idx in range(min(5, len(loweps_tbins))):
     ax.set_title(f"$t$: [{t_min:.2f} - {t_max:.2f}]")
     ax.set_xlabel("ϕ (deg)")
     ax.set_xlim(0, 360)
-    ax.set_ylim(0.0, max(1.5, t_df["avg_ratio"].max() + 0.4))
+#    ax.set_ylim(0.0, max(1.5, t_df["avg_ratio"].max() + 0.4))
+    ax.set_ylim(0.5, 1.5)
     ax.set_ylabel("Avg Data/SIMC Ratio")
     ax.tick_params(axis='y', which='both', labelleft=True)  # ensure y-tick labels are shown
 
@@ -567,7 +574,8 @@ for t_idx in range(min(5, len(higheps_tbins))):
     ax.set_title(f"$t$: [{t_min:.2f} - {t_max:.2f}]")
     ax.set_xlabel("ϕ (deg)")
     ax.set_xlim(0, 360)
-    ax.set_ylim(0.0, max(1.5, t_df["avg_ratio"].max() + 0.4))
+#    ax.set_ylim(0.0, max(1.5, t_df["avg_ratio"].max() + 0.4))
+    ax.set_ylim(0.5, 1.5)
     ax.set_ylabel("Avg Data/SIMC Ratio")
     ax.tick_params(axis='y', which='both', labelleft=True)  # ensure y-tick labels are shown
 
